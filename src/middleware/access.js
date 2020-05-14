@@ -1,7 +1,7 @@
 'use strict'
 
-module.exports = function(options) {
-  const errorHandler = require('../errorHandler')(options)
+export default function(options) {
+  const errorHandler = require('../errorHandler').default(options)
 
   return function(req, res, next) {
     const handler = function(err, access) {

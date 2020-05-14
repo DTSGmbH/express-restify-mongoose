@@ -1,26 +1,26 @@
 'use strict'
 
-const express = require('express')
-const bodyParser = require('body-parser')
-const methodOverride = require('method-override')
+import { json, urlencoded } from 'body-parser'
+import express from 'express'
+import methodOverride from 'method-override'
+import accessTests from './integration/access'
+import contextFilterTests from './integration/contextFilter'
+import createTests from './integration/create'
+import deleteTests from './integration/delete'
+import hookTests from './integration/hooks'
+import middlewareTests from './integration/middleware'
+import optionsTests from './integration/options'
+import readTests from './integration/read'
+import dbSetup from './integration/setup'
+import updateTests from './integration/update'
+import virtualsTests from './integration/virtuals'
 
-const createTests = require('./integration/create')
-const readTests = require('./integration/read')
-const updateTests = require('./integration/update')
-const deleteTests = require('./integration/delete')
-const accessTests = require('./integration/access')
-const contextFilterTests = require('./integration/contextFilter')
-const hookTests = require('./integration/hooks')
-const middlewareTests = require('./integration/middleware')
-const optionsTests = require('./integration/options')
-const virtualsTests = require('./integration/virtuals')
-
-const db = require('./integration/setup')()
+const db = dbSetup()
 
 function Express() {
   let app = express()
-  app.use(bodyParser.json())
-  app.use(bodyParser.urlencoded({ extended: true }))
+  app.use(json())
+  app.use(urlencoded({ extended: true }))
   app.use(methodOverride())
   return app
 }

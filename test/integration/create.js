@@ -1,17 +1,17 @@
 'use strict'
 
-const assert = require('assert')
-const mongoose = require('mongoose')
-const request = require('request')
+import { deepEqual, equal, ok } from 'assert'
+import mongoose from 'mongoose'
+import { post } from 'request'
+import * as erm from '../../src/express-restify-mongoose'
+import dbSetup from './setup'
 
-module.exports = function(createFn, setup, dismantle) {
-  const erm = require('../../src/express-restify-mongoose')
-  const db = require('./setup')()
-
-  let testPort = 30023
-  let testUrl = `http://localhost:${testPort}`
-  let invalidId = 'invalid-id'
-  let randomId = mongoose.Types.ObjectId().toHexString()
+export default function(createFn, setup, dismantle) {
+  const db = dbSetup()
+  const testPort = 30023
+  const testUrl = `http://localhost:${testPort}`
+  const invalidId = 'invalid-id'
+  const randomId = mongoose.Types.ObjectId().toHexString()
 
   describe('Create documents', () => {
     let app = createFn()
@@ -59,7 +59,7 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Customer 201', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -67,17 +67,17 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.name, 'John')
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.name, 'John')
           done()
         }
       )
     })
 
     it('POST /Customer 201 - generate _id (undefined)', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -86,17 +86,17 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.name, 'John')
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.name, 'John')
           done()
         }
       )
     })
 
     it('POST /Customer 201 - generate _id (null)', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -105,17 +105,17 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.name, 'John')
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.name, 'John')
           done()
         }
       )
     })
 
     it('POST /Customer 201 - use provided _id', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -124,18 +124,18 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.ok(body._id === randomId)
-          assert.equal(body.name, 'John')
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          ok(body._id === randomId)
+          equal(body.name, 'John')
           done()
         }
       )
     })
 
     it('POST /Customer 201 - ignore __v', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -144,18 +144,18 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.ok(body.__v === 0)
-          assert.equal(body.name, 'John')
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          ok(body.__v === 0)
+          equal(body.name, 'John')
           done()
         }
       )
     })
 
     it('POST /Customer 201 - array', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: [
@@ -168,30 +168,30 @@ module.exports = function(createFn, setup, dismantle) {
           ]
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(Array.isArray(body))
-          assert.ok(body.length, 2)
-          assert.ok(body[0]._id)
-          assert.equal(body[0].name, 'John')
-          assert.ok(body[1]._id)
-          assert.equal(body[1].name, 'Mike')
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(Array.isArray(body))
+          ok(body.length, 2)
+          ok(body[0]._id)
+          equal(body[0].name, 'John')
+          ok(body[1]._id)
+          equal(body[1].name, 'Mike')
           done()
         }
       )
     })
 
     it('POST /Customer 400 - validation error', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {}
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
-          assert.equal(body.name, 'ValidationError')
-          assert.deepEqual(body, {
+          ok(!err)
+          equal(res.statusCode, 400)
+          equal(body.name, 'ValidationError')
+          deepEqual(body, {
             name: 'ValidationError',
             message: 'Customer validation failed: name: Path `name` is required.',
             _message: 'Customer validation failed',
@@ -215,14 +215,14 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Customer 400 - missing content type', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
-          assert.deepEqual(JSON.parse(body), {
+          ok(!err)
+          equal(res.statusCode, 400)
+          deepEqual(JSON.parse(body), {
             name: 'Error',
             message: 'missing_content_type'
           })
@@ -232,15 +232,15 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Customer 400 - invalid content type', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           formData: {}
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
-          assert.deepEqual(JSON.parse(body), {
+          ok(!err)
+          equal(res.statusCode, 400)
+          deepEqual(JSON.parse(body), {
             name: 'Error',
             message: 'invalid_content_type'
           })
@@ -250,7 +250,7 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Invoice 201 - referencing customer and product ids as strings', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Invoice`,
           json: {
@@ -260,18 +260,18 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.customer, customer._id)
-          assert.equal(body.amount, 42)
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.customer, customer._id)
+          equal(body.amount, 42)
           done()
         }
       )
     })
 
     it('POST /Invoice 201 - referencing customer and products ids as strings', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Invoice`,
           json: {
@@ -281,18 +281,18 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.customer, customer._id)
-          assert.equal(body.amount, 42)
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.customer, customer._id)
+          equal(body.amount, 42)
           done()
         }
       )
     })
 
     it('POST /Invoice 201 - referencing customer and product ids', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Invoice`,
           json: {
@@ -302,18 +302,18 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.customer, customer._id)
-          assert.equal(body.amount, 42)
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.customer, customer._id)
+          equal(body.amount, 42)
           done()
         }
       )
     })
 
     it('POST /Invoice 201 - referencing customer and products ids', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Invoice`,
           json: {
@@ -323,18 +323,18 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.customer, customer._id)
-          assert.equal(body.amount, 42)
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.customer, customer._id)
+          equal(body.amount, 42)
           done()
         }
       )
     })
 
     it('POST /Invoice 201 - referencing customer and product', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Invoice`,
           json: {
@@ -344,18 +344,18 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.customer, customer._id)
-          assert.equal(body.amount, 42)
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.customer, customer._id)
+          equal(body.amount, 42)
           done()
         }
       )
     })
 
     it('POST /Invoice 201 - referencing customer and products', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Invoice`,
           json: {
@@ -365,18 +365,18 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.customer, customer._id)
-          assert.equal(body.amount, 42)
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.customer, customer._id)
+          equal(body.amount, 42)
           done()
         }
       )
     })
 
     it('POST /Invoice?populate=customer,products 201 - referencing customer and products', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Invoice`,
           qs: {
@@ -389,23 +389,23 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.amount, 42)
-          assert.equal(body.customer._id, customer._id)
-          assert.equal(body.customer.name, customer.name)
-          assert.equal(body.products[0]._id, product._id.toHexString())
-          assert.equal(body.products[0].name, product.name)
-          assert.equal(body.products[1]._id, product._id.toHexString())
-          assert.equal(body.products[1].name, product.name)
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.amount, 42)
+          equal(body.customer._id, customer._id)
+          equal(body.customer.name, customer.name)
+          equal(body.products[0]._id, product._id.toHexString())
+          equal(body.products[0].name, product.name)
+          equal(body.products[1]._id, product._id.toHexString())
+          equal(body.products[1].name, product.name)
           done()
         }
       )
     })
 
     it('POST /Invoice 400 - referencing invalid customer and products ids', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Invoice`,
           json: {
@@ -415,10 +415,10 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
+          ok(!err)
+          equal(res.statusCode, 400)
           delete body.message
-          assert.deepEqual(body, {
+          deepEqual(body, {
             name: 'ValidationError',
             _message: 'Invoice validation failed',
             errors: {

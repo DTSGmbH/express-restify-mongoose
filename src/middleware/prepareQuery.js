@@ -1,9 +1,9 @@
 'use strict'
 
-const isCoordinates = require('is-coordinates')
+import isCoordinates from 'is-coordinates'
 
-module.exports = function(options) {
-  const errorHandler = require('../errorHandler')(options)
+export default function(options) {
+  const errorHandler = require('../errorHandler').default(options)
 
   function jsonQueryParser(key, value) {
     if (key === '$regex' && !options.allowRegex) {

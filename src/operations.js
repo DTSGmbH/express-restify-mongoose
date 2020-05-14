@@ -1,12 +1,14 @@
 'use strict'
 
-const isPlainObject = require('lodash.isplainobject')
-const http = require('http')
-const moredots = require('moredots')
+import { STATUS_CODES } from 'http'
+import isPlainObject from 'lodash.isplainobject'
+import moredots from 'moredots'
+import buildQueryFn from './buildQuery'
+import errorHandlerFn from './errorHandler'
 
-module.exports = function(model, options, excludedMap) {
-  const buildQuery = require('./buildQuery')(options)
-  const errorHandler = require('./errorHandler')(options)
+export default function(model, options, excludedMap) {
+  const buildQuery = buildQueryFn(options)
+  const errorHandler = errorHandlerFn(options)
 
   function findById(filteredContext, id) {
     return filteredContext.findOne().and({
@@ -74,7 +76,7 @@ module.exports = function(model, options, excludedMap) {
     options.contextFilter(contextModel, req, filteredContext => {
       buildQuery(findById(filteredContext, req.params.id), req.erm.query).then(item => {
         if (!item) {
-          return errorHandler(req, res, next)(new Error(http.STATUS_CODES[404]))
+          return errorHandler(req, res, next)(new Error(STATUS_CODES[404]))
         }
 
         for (const prop in item) {
@@ -113,7 +115,7 @@ module.exports = function(model, options, excludedMap) {
     options.contextFilter(contextModel, req, filteredContext => {
       buildQuery(findById(filteredContext, req.params.id), req.erm.query).then(item => {
         if (!item) {
-          return errorHandler(req, res, next)(new Error(http.STATUS_CODES[404]))
+          return errorHandler(req, res, next)(new Error(STATUS_CODES[404]))
         }
 
         req.erm.result = item
@@ -133,7 +135,7 @@ module.exports = function(model, options, excludedMap) {
           .findOneAndRemove()
           .then(item => {
             if (!item) {
-              return errorHandler(req, res, next)(new Error(http.STATUS_CODES[404]))
+              return errorHandler(req, res, next)(new Error(STATUS_CODES[404]))
             }
 
             req.erm.statusCode = 204
@@ -244,7 +246,7 @@ module.exports = function(model, options, excludedMap) {
           .then(item => contextModel.populate(item, req.erm.query.populate || []))
           .then(item => {
             if (!item) {
-              return errorHandler(req, res, next)(new Error(http.STATUS_CODES[404]))
+              return errorHandler(req, res, next)(new Error(STATUS_CODES[404]))
             }
 
             req.erm.result = item

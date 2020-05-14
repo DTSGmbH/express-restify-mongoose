@@ -1,10 +1,9 @@
 'use strict'
 
-const sinon = require('sinon')
+import { assert, spy } from 'sinon'
+import outputFn from '../../../src/middleware/outputFn'
 
 describe('outputFn', () => {
-  const outputFn = require('../../../src/middleware/outputFn')
-
   let res = {
     sendStatus: function() {},
     status: function() {
@@ -14,10 +13,10 @@ describe('outputFn', () => {
     send: function() {}
   }
 
-  let sendStatus = sinon.spy(res, 'sendStatus')
-  let status = sinon.spy(res, 'status')
-  let json = sinon.spy(res, 'json')
-  let send = sinon.spy(res, 'send')
+  let sendStatus = spy(res, 'sendStatus')
+  let status = spy(res, 'status')
+  let json = spy(res, 'json')
+  let send = spy(res, 'send')
 
   afterEach(() => {
     sendStatus.resetHistory()
@@ -37,11 +36,11 @@ describe('outputFn', () => {
         res
       )
 
-      sinon.assert.calledOnce(sendStatus)
-      sinon.assert.calledWithExactly(sendStatus, 200)
-      sinon.assert.notCalled(status)
-      sinon.assert.notCalled(json)
-      sinon.assert.notCalled(send)
+      assert.calledOnce(sendStatus)
+      assert.calledWithExactly(sendStatus, 200)
+      assert.notCalled(status)
+      assert.notCalled(json)
+      assert.notCalled(send)
     })
 
     it('sends data and status code', () => {
@@ -56,14 +55,14 @@ describe('outputFn', () => {
 
       outputFn(true)(req, res)
 
-      sinon.assert.calledOnce(status)
-      sinon.assert.calledWithExactly(status, 201)
-      sinon.assert.calledOnce(json)
-      sinon.assert.calledWithExactly(json, {
+      assert.calledOnce(status)
+      assert.calledWithExactly(status, 201)
+      assert.calledOnce(json)
+      assert.calledWithExactly(json, {
         name: 'Bob'
       })
-      sinon.assert.notCalled(sendStatus)
-      sinon.assert.notCalled(send)
+      assert.notCalled(sendStatus)
+      assert.notCalled(send)
     })
   })
 
@@ -78,11 +77,11 @@ describe('outputFn', () => {
         res
       )
 
-      sinon.assert.calledOnce(send)
-      sinon.assert.calledWithExactly(send, 200, undefined)
-      sinon.assert.notCalled(sendStatus)
-      sinon.assert.notCalled(status)
-      sinon.assert.notCalled(json)
+      assert.calledOnce(send)
+      assert.calledWithExactly(send, 200, undefined)
+      assert.notCalled(sendStatus)
+      assert.notCalled(status)
+      assert.notCalled(json)
     })
 
     it('sends data and status code', () => {
@@ -97,13 +96,13 @@ describe('outputFn', () => {
 
       outputFn(false)(req, res)
 
-      sinon.assert.calledOnce(send)
-      sinon.assert.calledWithExactly(send, 201, {
+      assert.calledOnce(send)
+      assert.calledWithExactly(send, 201, {
         name: 'Bob'
       })
-      sinon.assert.notCalled(sendStatus)
-      sinon.assert.notCalled(status)
-      sinon.assert.notCalled(json)
+      assert.notCalled(sendStatus)
+      assert.notCalled(status)
+      assert.notCalled(json)
     })
   })
 })

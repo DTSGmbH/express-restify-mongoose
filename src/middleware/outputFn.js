@@ -1,6 +1,6 @@
 'use strict'
 
-module.exports = function(isExpress) {
+export default function(isExpress) {
   return function output(req, res) {
     if (isExpress) {
       if (req.erm.result) {

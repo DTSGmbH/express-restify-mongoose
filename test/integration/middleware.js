@@ -1,14 +1,14 @@
 'use strict'
 
-const assert = require('assert')
-const mongoose = require('mongoose')
-const request = require('request')
-const sinon = require('sinon')
+import { deepEqual, equal, ok } from 'assert'
+import mongoose from 'mongoose'
+import request, { del, get, post } from 'request'
+import { assert as _assert, spy } from 'sinon'
+import * as erm from '../../src/express-restify-mongoose'
+import dbSetup from './setup'
 
-module.exports = function(createFn, setup, dismantle) {
-  const erm = require('../../src/express-restify-mongoose')
-  const db = require('./setup')()
-
+export default function(createFn, setup, dismantle) {
+  const db = dbSetup()
   const testPort = 30023
   const testUrl = `http://localhost:${testPort}`
   const invalidId = 'invalid-id'
@@ -51,7 +51,7 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Customer 201', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -59,22 +59,22 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
+          ok(!err)
+          equal(res.statusCode, 201)
           done()
         }
       )
     })
 
     it('GET /Customer 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
+          ok(!err)
+          equal(res.statusCode, 200)
           done()
         }
       )
@@ -91,8 +91,8 @@ module.exports = function(createFn, setup, dismantle) {
             }
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
+            ok(!err)
+            equal(res.statusCode, 200)
             done()
           }
         )
@@ -100,14 +100,14 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('DELETE /Customer/:id 204', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer/${customer._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
+          ok(!err)
+          equal(res.statusCode, 204)
           done()
         }
       )
@@ -119,7 +119,7 @@ module.exports = function(createFn, setup, dismantle) {
     let server
     let customer
     let options = {
-      preMiddleware: sinon.spy((req, res, next) => {
+      preMiddleware: spy((req, res, next) => {
         next()
       }),
       restify: app.isRestify
@@ -150,43 +150,43 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('GET /Customer 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.preMiddleware)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.preMiddleware)
           let args = options.preMiddleware.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('GET /Customer/:id 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.preMiddleware)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.preMiddleware)
           let args = options.preMiddleware.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('POST /Customer 201', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -194,49 +194,49 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          sinon.assert.calledOnce(options.preMiddleware)
+          ok(!err)
+          equal(res.statusCode, 201)
+          _assert.calledOnce(options.preMiddleware)
           let args = options.preMiddleware.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('POST /Customer 400 - not called (missing content type)', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
-          assert.deepEqual(JSON.parse(body), {
+          ok(!err)
+          equal(res.statusCode, 400)
+          deepEqual(JSON.parse(body), {
             name: 'Error',
             message: 'missing_content_type'
           })
-          sinon.assert.notCalled(options.preMiddleware)
+          _assert.notCalled(options.preMiddleware)
           done()
         }
       )
     })
 
     it('POST /Customer 400 - not called (invalid content type)', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           formData: {}
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
-          assert.deepEqual(JSON.parse(body), {
+          ok(!err)
+          equal(res.statusCode, 400)
+          deepEqual(JSON.parse(body), {
             name: 'Error',
             message: 'invalid_content_type'
           })
-          sinon.assert.notCalled(options.preMiddleware)
+          _assert.notCalled(options.preMiddleware)
           done()
         }
       )
@@ -253,12 +253,12 @@ module.exports = function(createFn, setup, dismantle) {
             }
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            sinon.assert.calledOnce(options.preMiddleware)
+            ok(!err)
+            equal(res.statusCode, 200)
+            _assert.calledOnce(options.preMiddleware)
             let args = options.preMiddleware.args[0]
-            assert.equal(args.length, 3)
-            assert.equal(typeof args[2], 'function')
+            equal(args.length, 3)
+            equal(typeof args[2], 'function')
             done()
           }
         )
@@ -271,13 +271,13 @@ module.exports = function(createFn, setup, dismantle) {
             url: `${testUrl}/api/v1/Customer/${customer._id}`
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(JSON.parse(body), {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(JSON.parse(body), {
               name: 'Error',
               message: 'missing_content_type'
             })
-            sinon.assert.notCalled(options.preMiddleware)
+            _assert.notCalled(options.preMiddleware)
             done()
           }
         )
@@ -291,13 +291,13 @@ module.exports = function(createFn, setup, dismantle) {
             formData: {}
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(JSON.parse(body), {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(JSON.parse(body), {
               name: 'Error',
               message: 'invalid_content_type'
             })
-            sinon.assert.notCalled(options.preMiddleware)
+            _assert.notCalled(options.preMiddleware)
             done()
           }
         )
@@ -305,36 +305,36 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('DELETE /Customer 204', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
-          sinon.assert.calledOnce(options.preMiddleware)
+          ok(!err)
+          equal(res.statusCode, 204)
+          _assert.calledOnce(options.preMiddleware)
           let args = options.preMiddleware.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('DELETE /Customer/:id 204', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer/${customer._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
-          sinon.assert.calledOnce(options.preMiddleware)
+          ok(!err)
+          equal(res.statusCode, 204)
+          _assert.calledOnce(options.preMiddleware)
           let args = options.preMiddleware.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(typeof args[2], 'function')
           done()
         }
       )
@@ -345,7 +345,7 @@ module.exports = function(createFn, setup, dismantle) {
     let app = createFn()
     let server
     let options = {
-      preCreate: sinon.spy((req, res, next) => {
+      preCreate: spy((req, res, next) => {
         next()
       }),
       restify: app.isRestify
@@ -369,7 +369,7 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Customer 201', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -377,14 +377,14 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          sinon.assert.calledOnce(options.preCreate)
+          ok(!err)
+          equal(res.statusCode, 201)
+          _assert.calledOnce(options.preCreate)
           let args = options.preCreate.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result.name, 'Bob')
-          assert.equal(args[0].erm.statusCode, 201)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result.name, 'Bob')
+          equal(args[0].erm.statusCode, 201)
+          equal(typeof args[2], 'function')
           done()
         }
       )
@@ -396,7 +396,7 @@ module.exports = function(createFn, setup, dismantle) {
     let server
     let customer
     let options = {
-      preRead: sinon.spy((req, res, next) => {
+      preRead: spy((req, res, next) => {
         next()
       }),
       restify: app.isRestify
@@ -427,80 +427,80 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('GET /Customer 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.preRead)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.preRead)
           let args = options.preRead.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result[0].name, 'Bob')
-          assert.equal(args[0].erm.statusCode, 200)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result[0].name, 'Bob')
+          equal(args[0].erm.statusCode, 200)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('GET /Customer/count 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/count`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.preRead)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.preRead)
           let args = options.preRead.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result.count, 1)
-          assert.equal(args[0].erm.statusCode, 200)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result.count, 1)
+          equal(args[0].erm.statusCode, 200)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('GET /Customer/:id 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${customer._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.preRead)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.preRead)
           let args = options.preRead.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result.name, 'Bob')
-          assert.equal(args[0].erm.statusCode, 200)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result.name, 'Bob')
+          equal(args[0].erm.statusCode, 200)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('GET /Customer/:id/shallow 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${customer._id}/shallow`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.preRead)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.preRead)
           let args = options.preRead.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result.name, 'Bob')
-          assert.equal(args[0].erm.statusCode, 200)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result.name, 'Bob')
+          equal(args[0].erm.statusCode, 200)
+          equal(typeof args[2], 'function')
           done()
         }
       )
@@ -512,7 +512,7 @@ module.exports = function(createFn, setup, dismantle) {
     let server
     let customer
     let options = {
-      preUpdate: sinon.spy((req, res, next) => {
+      preUpdate: spy((req, res, next) => {
         next()
       }),
       restify: app.isRestify
@@ -553,14 +553,14 @@ module.exports = function(createFn, setup, dismantle) {
             }
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            sinon.assert.calledOnce(options.preUpdate)
+            ok(!err)
+            equal(res.statusCode, 200)
+            _assert.calledOnce(options.preUpdate)
             let args = options.preUpdate.args[0]
-            assert.equal(args.length, 3)
-            assert.equal(args[0].erm.result.name, 'Bobby')
-            assert.equal(args[0].erm.statusCode, 200)
-            assert.equal(typeof args[2], 'function')
+            equal(args.length, 3)
+            equal(args[0].erm.result.name, 'Bobby')
+            equal(args[0].erm.statusCode, 200)
+            equal(typeof args[2], 'function')
             done()
           }
         )
@@ -573,13 +573,13 @@ module.exports = function(createFn, setup, dismantle) {
             url: `${testUrl}/api/v1/Customer/${customer._id}`
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(JSON.parse(body), {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(JSON.parse(body), {
               name: 'Error',
               message: 'missing_content_type'
             })
-            sinon.assert.notCalled(options.preUpdate)
+            _assert.notCalled(options.preUpdate)
             done()
           }
         )
@@ -593,13 +593,13 @@ module.exports = function(createFn, setup, dismantle) {
             formData: {}
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(JSON.parse(body), {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(JSON.parse(body), {
               name: 'Error',
               message: 'invalid_content_type'
             })
-            sinon.assert.notCalled(options.preUpdate)
+            _assert.notCalled(options.preUpdate)
             done()
           }
         )
@@ -612,7 +612,7 @@ module.exports = function(createFn, setup, dismantle) {
     let server
     let customer
     let options = {
-      preDelete: sinon.spy((req, res, next) => {
+      preDelete: spy((req, res, next) => {
         next()
       }),
       restify: app.isRestify
@@ -643,40 +643,40 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('DELETE /Customer 204', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
-          sinon.assert.calledOnce(options.preDelete)
+          ok(!err)
+          equal(res.statusCode, 204)
+          _assert.calledOnce(options.preDelete)
           let args = options.preDelete.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result, undefined)
-          assert.equal(args[0].erm.statusCode, 204)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result, undefined)
+          equal(args[0].erm.statusCode, 204)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('DELETE /Customer/:id 204', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer/${customer._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
-          sinon.assert.calledOnce(options.preDelete)
+          ok(!err)
+          equal(res.statusCode, 204)
+          _assert.calledOnce(options.preDelete)
           let args = options.preDelete.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result, undefined)
-          assert.equal(args[0].erm.statusCode, 204)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result, undefined)
+          equal(args[0].erm.statusCode, 204)
+          equal(typeof args[2], 'function')
           done()
         }
       )
@@ -718,7 +718,7 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Customer 201', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -726,22 +726,22 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
+          ok(!err)
+          equal(res.statusCode, 201)
           done()
         }
       )
     })
 
     it('GET /Customer 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
+          ok(!err)
+          equal(res.statusCode, 200)
           done()
         }
       )
@@ -749,7 +749,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     updateMethods.forEach(method => {
       it(`${method} /Customer/:id 200`, done => {
-        request.post(
+        post(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             json: {
@@ -757,8 +757,8 @@ module.exports = function(createFn, setup, dismantle) {
             }
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
+            ok(!err)
+            equal(res.statusCode, 200)
             done()
           }
         )
@@ -766,14 +766,14 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('DELETE /Customer/:id 204', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer/${customer._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
+          ok(!err)
+          equal(res.statusCode, 204)
           done()
         }
       )
@@ -784,7 +784,7 @@ module.exports = function(createFn, setup, dismantle) {
     let app = createFn()
     let server
     let options = {
-      postCreate: sinon.spy((req, res, next) => {
+      postCreate: spy((req, res, next) => {
         next()
       }),
       restify: app.isRestify
@@ -808,7 +808,7 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Customer 201', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -816,21 +816,21 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          sinon.assert.calledOnce(options.postCreate)
+          ok(!err)
+          equal(res.statusCode, 201)
+          _assert.calledOnce(options.postCreate)
           let args = options.postCreate.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result.name, 'Bob')
-          assert.equal(args[0].erm.statusCode, 201)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result.name, 'Bob')
+          equal(args[0].erm.statusCode, 201)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('POST /Customer 400 - missing required field', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -838,9 +838,9 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
-          assert.deepEqual(body, {
+          ok(!err)
+          equal(res.statusCode, 400)
+          deepEqual(body, {
             name: 'ValidationError',
             _message: 'Customer validation failed',
             message: 'Customer validation failed: name: Path `name` is required.',
@@ -858,7 +858,7 @@ module.exports = function(createFn, setup, dismantle) {
               }
             }
           })
-          sinon.assert.notCalled(options.postCreate)
+          _assert.notCalled(options.postCreate)
           done()
         }
       )
@@ -870,7 +870,7 @@ module.exports = function(createFn, setup, dismantle) {
     let server
     let customer
     let options = {
-      postRead: sinon.spy((req, res, next) => {
+      postRead: spy((req, res, next) => {
         next()
       }),
       restify: app.isRestify
@@ -901,110 +901,110 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('GET /Customer 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.postRead)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.postRead)
           let args = options.postRead.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result[0].name, 'Bob')
-          assert.equal(args[0].erm.statusCode, 200)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result[0].name, 'Bob')
+          equal(args[0].erm.statusCode, 200)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('GET /Customer/count 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/count`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.postRead)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.postRead)
           let args = options.postRead.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result.count, 1)
-          assert.equal(args[0].erm.statusCode, 200)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result.count, 1)
+          equal(args[0].erm.statusCode, 200)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('GET /Customer/:id 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${customer._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.postRead)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.postRead)
           let args = options.postRead.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result.name, 'Bob')
-          assert.equal(args[0].erm.statusCode, 200)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result.name, 'Bob')
+          equal(args[0].erm.statusCode, 200)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('GET /Customer/:id 404', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${randomId}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 404)
-          sinon.assert.notCalled(options.postRead)
+          ok(!err)
+          equal(res.statusCode, 404)
+          _assert.notCalled(options.postRead)
           done()
         }
       )
     })
 
     it('GET /Customer/:id 404 - invalid id', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${invalidId}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 404)
-          sinon.assert.notCalled(options.postRead)
+          ok(!err)
+          equal(res.statusCode, 404)
+          _assert.notCalled(options.postRead)
           done()
         }
       )
     })
 
     it('GET /Customer/:id/shallow 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${customer._id}/shallow`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.postRead)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.postRead)
           let args = options.postRead.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result.name, 'Bob')
-          assert.equal(args[0].erm.statusCode, 200)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result.name, 'Bob')
+          equal(args[0].erm.statusCode, 200)
+          equal(typeof args[2], 'function')
           done()
         }
       )
@@ -1016,7 +1016,7 @@ module.exports = function(createFn, setup, dismantle) {
     let server
     let customer
     let options = {
-      postUpdate: sinon.spy((req, res, next) => {
+      postUpdate: spy((req, res, next) => {
         next()
       }),
       restify: app.isRestify
@@ -1057,14 +1057,14 @@ module.exports = function(createFn, setup, dismantle) {
             }
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            sinon.assert.calledOnce(options.postUpdate)
+            ok(!err)
+            equal(res.statusCode, 200)
+            _assert.calledOnce(options.postUpdate)
             let args = options.postUpdate.args[0]
-            assert.equal(args.length, 3)
-            assert.equal(args[0].erm.result.name, 'Bobby')
-            assert.equal(args[0].erm.statusCode, 200)
-            assert.equal(typeof args[2], 'function')
+            equal(args.length, 3)
+            equal(args[0].erm.result.name, 'Bobby')
+            equal(args[0].erm.statusCode, 200)
+            equal(typeof args[2], 'function')
             done()
           }
         )
@@ -1080,9 +1080,9 @@ module.exports = function(createFn, setup, dismantle) {
             }
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 404)
-            sinon.assert.notCalled(options.postUpdate)
+            ok(!err)
+            equal(res.statusCode, 404)
+            _assert.notCalled(options.postUpdate)
             done()
           }
         )
@@ -1098,9 +1098,9 @@ module.exports = function(createFn, setup, dismantle) {
             }
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 404)
-            sinon.assert.notCalled(options.postUpdate)
+            ok(!err)
+            equal(res.statusCode, 404)
+            _assert.notCalled(options.postUpdate)
             done()
           }
         )
@@ -1113,13 +1113,13 @@ module.exports = function(createFn, setup, dismantle) {
             url: `${testUrl}/api/v1/Customer/${customer._id}`
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(JSON.parse(body), {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(JSON.parse(body), {
               name: 'Error',
               message: 'missing_content_type'
             })
-            sinon.assert.notCalled(options.postUpdate)
+            _assert.notCalled(options.postUpdate)
             done()
           }
         )
@@ -1133,13 +1133,13 @@ module.exports = function(createFn, setup, dismantle) {
             formData: {}
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(JSON.parse(body), {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(JSON.parse(body), {
               name: 'Error',
               message: 'invalid_content_type'
             })
-            sinon.assert.notCalled(options.postUpdate)
+            _assert.notCalled(options.postUpdate)
             done()
           }
         )
@@ -1152,7 +1152,7 @@ module.exports = function(createFn, setup, dismantle) {
     let server
     let customer
     let options = {
-      postDelete: sinon.spy((req, res, next) => {
+      postDelete: spy((req, res, next) => {
         next()
       }),
       restify: app.isRestify
@@ -1183,70 +1183,70 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('DELETE /Customer 204', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
-          sinon.assert.calledOnce(options.postDelete)
+          ok(!err)
+          equal(res.statusCode, 204)
+          _assert.calledOnce(options.postDelete)
           let args = options.postDelete.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result, undefined)
-          assert.equal(args[0].erm.statusCode, 204)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result, undefined)
+          equal(args[0].erm.statusCode, 204)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('DELETE /Customer/:id 204', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer/${customer._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
-          sinon.assert.calledOnce(options.postDelete)
+          ok(!err)
+          equal(res.statusCode, 204)
+          _assert.calledOnce(options.postDelete)
           let args = options.postDelete.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result, undefined)
-          assert.equal(args[0].erm.statusCode, 204)
-          assert.equal(typeof args[2], 'function')
+          equal(args.length, 3)
+          equal(args[0].erm.result, undefined)
+          equal(args[0].erm.statusCode, 204)
+          equal(typeof args[2], 'function')
           done()
         }
       )
     })
 
     it('DELETE /Customer/:id 404', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer/${randomId}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 404)
-          sinon.assert.notCalled(options.postDelete)
+          ok(!err)
+          equal(res.statusCode, 404)
+          _assert.notCalled(options.postDelete)
           done()
         }
       )
     })
 
     it('DELETE /Customer/:id 404 - invalid id', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer/${invalidId}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 404)
-          sinon.assert.notCalled(options.postDelete)
+          ok(!err)
+          equal(res.statusCode, 404)
+          _assert.notCalled(options.postDelete)
           done()
         }
       )
@@ -1257,10 +1257,10 @@ module.exports = function(createFn, setup, dismantle) {
     let app = createFn()
     let server
     let options = {
-      postCreate: sinon.spy((req, res, next) => {
+      postCreate: spy((req, res, next) => {
         next(new Error('Something went wrong'))
       }),
-      postProcess: sinon.spy(),
+      postProcess: spy(),
       restify: app.isRestify
     }
 
@@ -1283,7 +1283,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     // TODO: This test is weird
     it('POST /Customer 201', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: {
@@ -1291,15 +1291,15 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
-          sinon.assert.calledOnce(options.postCreate)
+          ok(!err)
+          equal(res.statusCode, 400)
+          _assert.calledOnce(options.postCreate)
           let args = options.postCreate.args[0]
-          assert.equal(args.length, 3)
-          assert.equal(args[0].erm.result.name, 'Bob')
-          assert.equal(args[0].erm.statusCode, 400)
-          assert.equal(typeof args[2], 'function')
-          sinon.assert.notCalled(options.postProcess)
+          equal(args.length, 3)
+          equal(args[0].erm.result.name, 'Bob')
+          equal(args[0].erm.statusCode, 400)
+          equal(typeof args[2], 'function')
+          _assert.notCalled(options.postProcess)
           done()
         }
       )
@@ -1310,7 +1310,7 @@ module.exports = function(createFn, setup, dismantle) {
     let app = createFn()
     let server
     let options = {
-      postProcess: sinon.spy(),
+      postProcess: spy(),
       restify: app.isRestify
     }
 
@@ -1332,19 +1332,19 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('GET /Customer 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.postProcess)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.postProcess)
           let args = options.postProcess.args[0]
-          assert.equal(args.length, 2)
-          assert.deepEqual(args[0].erm.result, [])
-          assert.equal(args[0].erm.statusCode, 200)
+          equal(args.length, 2)
+          deepEqual(args[0].erm.result, [])
+          equal(args[0].erm.statusCode, 200)
           done()
         }
       )
@@ -1364,7 +1364,7 @@ module.exports = function(createFn, setup, dismantle) {
 
         return Promise.resolve()
       },
-      postProcess: sinon.spy(),
+      postProcess: spy(),
       restify: app.isRestify
     }
 
@@ -1386,19 +1386,19 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('GET /Customer 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          sinon.assert.calledOnce(options.postProcess)
+          ok(!err)
+          equal(res.statusCode, 200)
+          _assert.calledOnce(options.postProcess)
           let args = options.postProcess.args[0]
-          assert.equal(args.length, 2)
-          assert.deepEqual(args[0].erm.result, [])
-          assert.equal(args[0].erm.statusCode, 200)
+          equal(args.length, 2)
+          deepEqual(args[0].erm.result, [])
+          equal(args[0].erm.statusCode, 200)
           done()
         }
       )

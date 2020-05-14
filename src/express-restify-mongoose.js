@@ -1,14 +1,23 @@
 'use strict'
 
-const defaults = require('lodash.defaults')
-const ensureArray = require('ensure-array')
-const util = require('util')
-const Filter = require('./resource_filter')
+import ensureArray from 'ensure-array'
+import lodashDefaults from 'lodash.defaults'
+import { deprecate } from 'util'
+import access from './middleware/access'
+import ensureContentTypeFn from './middleware/ensureContentType'
+import filterAndFindByIdFn from './middleware/filterAndFindById'
+import onError from './middleware/onError'
+import outputFn from './middleware/outputFn'
+import prepareOutputFn from './middleware/prepareOutput'
+import prepareQueryFn from './middleware/prepareQuery'
+import operationsFn from './operations'
+import { Filter } from './resource_filter'
+
 let customDefaults = null
 const excludedMap = {}
 
 function getDefaults() {
-  return defaults(Object.assign({}, customDefaults) || {}, {
+  return lodashDefaults(Object.assign({}, customDefaults) || {}, {
     prefix: '/api',
     version: '/v1',
     idProperty: '_id',
@@ -26,14 +35,10 @@ function getDefaults() {
 
 const restify = function(app, model, opts) {
   const options = Object.assign({}, getDefaults(), opts || {})
-
-  const access = require('./middleware/access')
-  const ensureContentType = require('./middleware/ensureContentType')(options)
-  const filterAndFindById = require('./middleware/filterAndFindById')(model, options)
-  const onError = require('./middleware/onError')
-  const outputFn = require('./middleware/outputFn')
-  const prepareQuery = require('./middleware/prepareQuery')(options)
-  const prepareOutput = require('./middleware/prepareOutput')(options, excludedMap)
+  const ensureContentType = ensureContentTypeFn(options)
+  const filterAndFindById = filterAndFindByIdFn(model, options)
+  const prepareQuery = prepareQueryFn(options)
+  const prepareOutput = prepareOutputFn(options, excludedMap)
 
   if (!Array.isArray(options.private)) {
     throw new Error('"options.private" must be an array of fields')
@@ -92,7 +97,7 @@ const restify = function(app, model, opts) {
 
   options.name = options.name || model.modelName
 
-  const ops = require('./operations')(model, options, excludedMap)
+  const ops = operationsFn(model, options, excludedMap)
 
   let uriItem = `${options.prefix}${options.version}/${options.name}`
   if (uriItem.indexOf('/:id') === -1) {
@@ -125,9 +130,9 @@ const restify = function(app, model, opts) {
   app.get(uriShallow, prepareQuery, options.preMiddleware, options.preRead, accessMiddleware, ops.getShallow, prepareOutput)
 
   app.post(uriItems, prepareQuery, ensureContentType, options.preMiddleware, options.preCreate, accessMiddleware, ops.createObject, prepareOutput)
-  app.post(uriItem, util.deprecate(prepareQuery, 'express-restify-mongoose: in a future major version, the POST method to update resources will be removed. Use PATCH instead.'), ensureContentType, options.preMiddleware, options.findOneAndUpdate ? [] : filterAndFindById, options.preUpdate, accessMiddleware, ops.modifyObject, prepareOutput)
+  app.post(uriItem, deprecate(prepareQuery, 'express-restify-mongoose: in a future major version, the POST method to update resources will be removed. Use PATCH instead.'), ensureContentType, options.preMiddleware, options.findOneAndUpdate ? [] : filterAndFindById, options.preUpdate, accessMiddleware, ops.modifyObject, prepareOutput)
 
-  app.put(uriItem, util.deprecate(prepareQuery, 'express-restify-mongoose: in a future major version, the PUT method will replace rather than update a resource. Use PATCH instead.'), ensureContentType, options.preMiddleware, options.findOneAndUpdate ? [] : filterAndFindById, options.preUpdate, accessMiddleware, ops.modifyObject, prepareOutput)
+  app.put(uriItem, deprecate(prepareQuery, 'express-restify-mongoose: in a future major version, the PUT method will replace rather than update a resource. Use PATCH instead.'), ensureContentType, options.preMiddleware, options.findOneAndUpdate ? [] : filterAndFindById, options.preUpdate, accessMiddleware, ops.modifyObject, prepareOutput)
   app.patch(uriItem, prepareQuery, ensureContentType, options.preMiddleware, options.findOneAndUpdate ? [] : filterAndFindById, options.preUpdate, accessMiddleware, ops.modifyObject, prepareOutput)
 
   app.delete(uriItems, prepareQuery, options.preMiddleware, options.preDelete, ops.deleteItems, prepareOutput)
@@ -136,9 +141,7 @@ const restify = function(app, model, opts) {
   return uriItems
 }
 
-module.exports = {
-  defaults: function(options) {
-    customDefaults = options
-  },
-  serve: restify
+export function defaults(options) {
+  customDefaults = options
 }
+export const serve = restify

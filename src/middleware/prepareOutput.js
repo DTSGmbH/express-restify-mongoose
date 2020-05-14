@@ -1,9 +1,9 @@
 'use strict'
 
-const runSeries = require('run-series')
+import runSeries from 'run-series'
 
-module.exports = function(options, excludedMap) {
-  const errorHandler = require('../errorHandler')(options)
+export default function(options, excludedMap) {
+  const errorHandler = require('../errorHandler').default(options)
 
   return function(req, res, next) {
     const postMiddleware = (() => {

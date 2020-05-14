@@ -1,17 +1,16 @@
 'use strict'
 
-const sinon = require('sinon')
+import { assert, spy } from 'sinon'
+import prepareOutput from '../../../src/middleware/prepareOutput'
 
 describe('prepareOutput', () => {
-  const prepareOutput = require('../../../src/middleware/prepareOutput')
-
-  let onError = sinon.spy()
-  let outputFn = sinon.spy()
-  let outputFnPromise = sinon.spy(() => {
+  let onError = spy()
+  let outputFn = spy()
+  let outputFnPromise = spy(() => {
     return Promise.resolve()
   })
-  let postProcess = sinon.spy()
-  let next = sinon.spy()
+  let postProcess = spy()
+  let next = spy()
 
   afterEach(() => {
     onError.resetHistory()
@@ -33,10 +32,10 @@ describe('prepareOutput', () => {
 
     prepareOutput(options)(req, {}, next)
 
-    sinon.assert.calledOnce(outputFn)
-    sinon.assert.calledWithExactly(outputFn, req, {})
-    sinon.assert.notCalled(onError)
-    sinon.assert.notCalled(next)
+    assert.calledOnce(outputFn)
+    assert.calledWithExactly(outputFn, req, {})
+    assert.notCalled(onError)
+    assert.notCalled(next)
   })
 
   it('calls outputFn with default options and no post* middleware (async)', () => {
@@ -52,10 +51,10 @@ describe('prepareOutput', () => {
 
     prepareOutput(options)(req, {}, next)
 
-    sinon.assert.calledOnce(outputFnPromise)
-    sinon.assert.calledWithExactly(outputFnPromise, req, {})
-    sinon.assert.notCalled(onError)
-    sinon.assert.notCalled(next)
+    assert.calledOnce(outputFnPromise)
+    assert.calledWithExactly(outputFnPromise, req, {})
+    assert.notCalled(onError)
+    assert.notCalled(next)
   })
 
   it('calls postProcess with default options and no post* middleware', () => {
@@ -72,12 +71,12 @@ describe('prepareOutput', () => {
 
     prepareOutput(options)(req, {}, next)
 
-    sinon.assert.calledOnce(outputFn)
-    sinon.assert.calledWithExactly(outputFn, req, {})
-    sinon.assert.calledOnce(postProcess)
-    sinon.assert.calledWithExactly(postProcess, req, {})
-    sinon.assert.notCalled(onError)
-    sinon.assert.notCalled(next)
+    assert.calledOnce(outputFn)
+    assert.calledWithExactly(outputFn, req, {})
+    assert.calledOnce(postProcess)
+    assert.calledWithExactly(postProcess, req, {})
+    assert.notCalled(onError)
+    assert.notCalled(next)
   })
 
   it('calls postProcess with default options and no post* middleware (async outputFn)', () => {
@@ -94,11 +93,11 @@ describe('prepareOutput', () => {
 
     prepareOutput(options)(req, {}, next)
 
-    sinon.assert.calledOnce(outputFnPromise)
-    sinon.assert.calledWithExactly(outputFnPromise, req, {})
-    sinon.assert.calledOnce(postProcess)
-    sinon.assert.calledWithExactly(postProcess, req, {})
-    sinon.assert.notCalled(onError)
-    sinon.assert.notCalled(next)
+    assert.calledOnce(outputFnPromise)
+    assert.calledWithExactly(outputFnPromise, req, {})
+    assert.calledOnce(postProcess)
+    assert.calledWithExactly(postProcess, req, {})
+    assert.notCalled(onError)
+    assert.notCalled(next)
   })
 })

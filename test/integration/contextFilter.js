@@ -1,11 +1,12 @@
 'use strict'
 
-const assert = require('assert')
-const request = require('request')
+import { equal, notEqual, ok } from 'assert'
+import request, { del, get } from 'request'
+import * as erm from '../../src/express-restify-mongoose'
+import dbSetup from './setup'
 
-module.exports = function(createFn, setup, dismantle) {
-  const erm = require('../../src/express-restify-mongoose')
-  const db = require('./setup')()
+export default function(createFn, setup, dismantle) {
+  const db = dbSetup()
 
   const testPort = 30023
   const testUrl = `http://localhost:${testPort}`
@@ -63,60 +64,60 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('GET /Customer 200 - filtered name and age', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          assert.equal(body.length, 1)
-          assert.equal(body[0].name, 'John')
-          assert.equal(body[0].age, 24)
+          ok(!err)
+          equal(res.statusCode, 200)
+          equal(body.length, 1)
+          equal(body[0].name, 'John')
+          equal(body[0].age, 24)
           done()
         }
       )
     })
 
     it('GET /Customer/:id 404 - filtered name', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${customers[0]._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 404)
+          ok(!err)
+          equal(res.statusCode, 404)
           done()
         }
       )
     })
 
     it('GET /Customer/:id/shallow 404 - filtered age', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${customers[2]._id}/shallow`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 404)
+          ok(!err)
+          equal(res.statusCode, 404)
           done()
         }
       )
     })
 
     it('GET /Customer/count 200 - filtered name and age', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/count`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          assert.equal(body.count, 1)
+          ok(!err)
+          equal(res.statusCode, 200)
+          equal(body.count, 1)
           done()
         }
       )
@@ -133,9 +134,9 @@ module.exports = function(createFn, setup, dismantle) {
             }
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.name, 'Johnny')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.name, 'Johnny')
             done()
           }
         )
@@ -151,12 +152,12 @@ module.exports = function(createFn, setup, dismantle) {
             }
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 404)
+            ok(!err)
+            equal(res.statusCode, 404)
 
             db.models.Customer.findById(customers[0]._id, (err, customer) => {
-              assert.ok(!err)
-              assert.notEqual(customer.name, 'Bobby')
+              ok(!err)
+              notEqual(customer.name, 'Bobby')
               done()
             })
           }
@@ -165,18 +166,18 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('DELETE /Customer/:id 200', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer/${customers[1]._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
+          ok(!err)
+          equal(res.statusCode, 204)
 
           db.models.Customer.findById(customers[1]._id, (err, customer) => {
-            assert.ok(!err)
-            assert.ok(!customer)
+            ok(!err)
+            ok(!customer)
             done()
           })
         }
@@ -184,19 +185,19 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('DELETE /Customer/:id 404 - filtered age', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer/${customers[2]._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 404)
+          ok(!err)
+          equal(res.statusCode, 404)
 
           db.models.Customer.findById(customers[2]._id, (err, customer) => {
-            assert.ok(!err)
-            assert.ok(customer)
-            assert.equal(customer.name, 'Mike')
+            ok(!err)
+            ok(customer)
+            equal(customer.name, 'Mike')
             done()
           })
         }
@@ -204,18 +205,18 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('DELETE /Customer 200 - filtered name and age', done => {
-      request.del(
+      del(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 204)
+          ok(!err)
+          equal(res.statusCode, 204)
 
           db.models.Customer.countDocuments((err, count) => {
-            assert.ok(!err)
-            assert.equal(count, 2)
+            ok(!err)
+            equal(count, 2)
             done()
           })
         }

@@ -1,27 +1,26 @@
 'use strict'
 
-const assert = require('assert')
-const CastError = require('mongoose/lib/error/cast')
-const sinon = require('sinon')
+import { equal } from 'assert'
+import CastError from 'mongoose/lib/error/cast'
+import { assert as _assert, spy } from 'sinon'
+import errorHandler from '../../src/errorHandler'
 
 describe('errorHandler', () => {
-  const errorHandler = require('../../src/errorHandler')
-
   it('is a function', () => {
-    assert.equal(typeof errorHandler, 'function')
+    equal(typeof errorHandler, 'function')
   })
 
   it('returns a function', () => {
-    assert.equal(typeof errorHandler(), 'function')
+    equal(typeof errorHandler(), 'function')
   })
 
   it('returns a function that returns a function', () => {
-    assert.equal(typeof errorHandler()(), 'function')
+    equal(typeof errorHandler()(), 'function')
   })
 
   it('sets statusCode 400 and calls onError', () => {
     const options = {
-      onError: sinon.spy()
+      onError: spy()
     }
 
     const req = {
@@ -33,13 +32,13 @@ describe('errorHandler', () => {
 
     errorHandler(options)(req)(err)
 
-    sinon.assert.calledOnce(options.onError)
-    assert.equal(req.erm.statusCode, 400)
+    _assert.calledOnce(options.onError)
+    equal(req.erm.statusCode, 400)
   })
 
   it('sets statusCode 400 and calls onError', () => {
     const options = {
-      onError: sinon.spy(),
+      onError: spy(),
       idProperty: '42'
     }
 
@@ -54,13 +53,13 @@ describe('errorHandler', () => {
 
     errorHandler(options)(req)(err)
 
-    sinon.assert.calledOnce(options.onError)
-    assert.equal(req.erm.statusCode, 400)
+    _assert.calledOnce(options.onError)
+    equal(req.erm.statusCode, 400)
   })
 
   it('sets statusCode 404 and calls onError', () => {
     const options = {
-      onError: sinon.spy(),
+      onError: spy(),
       idProperty: '_id'
     }
 
@@ -75,7 +74,7 @@ describe('errorHandler', () => {
 
     errorHandler(options)(req)(err)
 
-    sinon.assert.calledOnce(options.onError)
-    assert.equal(req.erm.statusCode, 404)
+    _assert.calledOnce(options.onError)
+    equal(req.erm.statusCode, 404)
   })
 })

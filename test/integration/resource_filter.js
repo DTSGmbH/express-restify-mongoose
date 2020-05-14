@@ -1,9 +1,11 @@
 'use strict'
 
-const Filter = require('../../src/resource_filter')
-const db = require('./setup')()
-const assert = require('assert')
-const ObjectId = require('mongoose').Types.ObjectId
+import assert from 'assert'
+import mongoose from 'mongoose'
+import { Filter } from '../../src/resource_filter'
+import setup from './setup'
+const ObjectId = mongoose.Types.ObjectId
+const db = setup()
 
 describe('Resource filter', () => {
   let customerFilter

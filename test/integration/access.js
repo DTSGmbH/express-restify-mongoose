@@ -1,11 +1,12 @@
 'use strict'
 
-const assert = require('assert')
-const request = require('request')
+import { deepEqual, equal, ok } from 'assert'
+import request, { get } from 'request'
+import * as erm from '../../src/express-restify-mongoose'
+import dbSetup from './setup'
 
-module.exports = function(createFn, setup, dismantle) {
-  const erm = require('../../src/express-restify-mongoose')
-  const db = require('./setup')()
+export default function(createFn, setup, dismantle) {
+  const db = dbSetup()
 
   const testPort = 30023
   const testUrl = `http://localhost:${testPort}`
@@ -154,20 +155,20 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
-            assert.equal(body[0].name, 'Bob')
-            assert.equal(body[0].age, 12)
-            assert.equal(body[0].comment, 'Boo')
-            assert.equal(body[0].purchases.length, 1)
-            assert.deepEqual(body[0].favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
+            equal(body[0].name, 'Bob')
+            equal(body[0].age, 12)
+            equal(body[0].comment, 'Boo')
+            equal(body[0].purchases.length, 1)
+            deepEqual(body[0].favorites, {
               animal: 'Boar',
               color: 'Black',
               purchase: {
@@ -181,7 +182,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer?distinct=age 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -190,17 +191,17 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
-            assert.equal(body[0], 12)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
+            equal(body[0], 12)
             done()
           }
         )
       })
 
       it('GET /Customer?distinct=comment 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -209,29 +210,29 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
-            assert.equal(body[0], 'Boo')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
+            equal(body[0], 'Boo')
             done()
           }
         )
       })
 
       it('GET /Customer/:id 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.name, 'Bob')
-            assert.equal(body.age, 12)
-            assert.equal(body.comment, 'Boo')
-            assert.equal(body.purchases.length, 1)
-            assert.deepEqual(body.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.name, 'Bob')
+            equal(body.age, 12)
+            equal(body.comment, 'Boo')
+            equal(body.purchases.length, 1)
+            deepEqual(body.favorites, {
               animal: 'Boar',
               color: 'Black',
               purchase: {
@@ -245,7 +246,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer/:id?distinct=age 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             qs: {
@@ -254,17 +255,17 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
-            assert.equal(body[0], 12)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
+            equal(body[0], 12)
             done()
           }
         )
       })
 
       it('GET /Customer/:id?distinct=comment 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             qs: {
@@ -273,17 +274,17 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
-            assert.equal(body[0], 'Boo')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
+            equal(body[0], 'Boo')
             done()
           }
         )
       })
 
       it('GET /Customer?populate=favorites.purchase.item,purchases.item,returns 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -292,13 +293,13 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
-            assert.equal(body[0].name, 'Bob')
-            assert.equal(body[0].age, 12)
-            assert.equal(body[0].comment, 'Boo')
-            assert.deepEqual(body[0].favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
+            equal(body[0].name, 'Bob')
+            equal(body[0].age, 12)
+            equal(body[0].comment, 'Boo')
+            deepEqual(body[0].favorites, {
               animal: 'Boar',
               color: 'Black',
               purchase: {
@@ -314,19 +315,19 @@ module.exports = function(createFn, setup, dismantle) {
                 number: 1
               }
             })
-            assert.equal(body[0].purchases.length, 1)
-            assert.ok(body[0].purchases[0].item)
-            assert.equal(body[0].purchases[0].item._id, product._id.toHexString())
-            assert.equal(body[0].purchases[0].item.name, 'Bobsleigh')
-            assert.equal(body[0].purchases[0].item.price, 42)
-            assert.deepEqual(body[0].purchases[0].item.department, {
+            equal(body[0].purchases.length, 1)
+            ok(body[0].purchases[0].item)
+            equal(body[0].purchases[0].item._id, product._id.toHexString())
+            equal(body[0].purchases[0].item.name, 'Bobsleigh')
+            equal(body[0].purchases[0].item.price, 42)
+            deepEqual(body[0].purchases[0].item.department, {
               code: 51
             })
-            assert.equal(body[0].purchases[0].number, 2)
-            assert.equal(body[0].returns.length, 1)
-            assert.equal(body[0].returns[0].name, 'Bobsleigh')
-            assert.equal(body[0].returns[0].price, 42)
-            assert.deepEqual(body[0].returns[0].department, {
+            equal(body[0].purchases[0].number, 2)
+            equal(body[0].returns.length, 1)
+            equal(body[0].returns[0].name, 'Bobsleigh')
+            equal(body[0].returns[0].price, 42)
+            deepEqual(body[0].returns[0].department, {
               code: 51
             })
             done()
@@ -335,7 +336,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer/:id?populate=favorites.purchase.item,purchases.item,returns 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             qs: {
@@ -344,12 +345,12 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.name, 'Bob')
-            assert.equal(body.age, 12)
-            assert.equal(body.comment, 'Boo')
-            assert.deepEqual(body.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.name, 'Bob')
+            equal(body.age, 12)
+            equal(body.comment, 'Boo')
+            deepEqual(body.favorites, {
               animal: 'Boar',
               color: 'Black',
               purchase: {
@@ -365,19 +366,19 @@ module.exports = function(createFn, setup, dismantle) {
                 number: 1
               }
             })
-            assert.equal(body.purchases.length, 1)
-            assert.ok(body.purchases[0].item)
-            assert.equal(body.purchases[0].item._id, product._id.toHexString())
-            assert.equal(body.purchases[0].item.name, 'Bobsleigh')
-            assert.equal(body.purchases[0].item.price, 42)
-            assert.deepEqual(body.purchases[0].item.department, {
+            equal(body.purchases.length, 1)
+            ok(body.purchases[0].item)
+            equal(body.purchases[0].item._id, product._id.toHexString())
+            equal(body.purchases[0].item.name, 'Bobsleigh')
+            equal(body.purchases[0].item.price, 42)
+            deepEqual(body.purchases[0].item.department, {
               code: 51
             })
-            assert.equal(body.purchases[0].number, 2)
-            assert.equal(body.returns.length, 1)
-            assert.equal(body.returns[0].name, 'Bobsleigh')
-            assert.equal(body.returns[0].price, 42)
-            assert.deepEqual(body.returns[0].department, {
+            equal(body.purchases[0].number, 2)
+            equal(body.returns.length, 1)
+            equal(body.returns[0].name, 'Bobsleigh')
+            equal(body.returns[0].price, 42)
+            deepEqual(body.returns[0].department, {
               code: 51
             })
             done()
@@ -386,7 +387,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Invoice?populate=customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice`,
             qs: {
@@ -395,17 +396,17 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
-            assert.ok(body[0].customer)
-            assert.equal(body[0].amount, 100)
-            assert.equal(body[0].receipt, 'A')
-            assert.equal(body[0].customer.name, 'Bob')
-            assert.equal(body[0].customer.age, 12)
-            assert.equal(body[0].customer.comment, 'Boo')
-            assert.equal(body[0].customer.purchases.length, 1)
-            assert.deepEqual(body[0].customer.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
+            ok(body[0].customer)
+            equal(body[0].amount, 100)
+            equal(body[0].receipt, 'A')
+            equal(body[0].customer.name, 'Bob')
+            equal(body[0].customer.age, 12)
+            equal(body[0].customer.comment, 'Boo')
+            equal(body[0].customer.purchases.length, 1)
+            deepEqual(body[0].customer.favorites, {
               animal: 'Boar',
               color: 'Black',
               purchase: {
@@ -419,7 +420,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Invoice/:id?populate=customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice/${invoice._id}`,
             qs: {
@@ -428,16 +429,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.ok(body.customer)
-            assert.equal(body.amount, 100)
-            assert.equal(body.receipt, 'A')
-            assert.equal(body.customer.name, 'Bob')
-            assert.equal(body.customer.age, 12)
-            assert.equal(body.customer.comment, 'Boo')
-            assert.equal(body.customer.purchases.length, 1)
-            assert.deepEqual(body.customer.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            ok(body.customer)
+            equal(body.amount, 100)
+            equal(body.receipt, 'A')
+            equal(body.customer.name, 'Bob')
+            equal(body.customer.age, 12)
+            equal(body.customer.comment, 'Boo')
+            equal(body.customer.purchases.length, 1)
+            deepEqual(body.customer.favorites, {
               animal: 'Boar',
               color: 'Black',
               purchase: {
@@ -470,13 +471,13 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'John')
-              assert.equal(body.age, 24)
-              assert.equal(body.comment, 'Jumbo')
-              assert.equal(body.purchases.length, 1)
-              assert.deepEqual(body.favorites, {
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'John')
+              equal(body.age, 24)
+              equal(body.comment, 'Jumbo')
+              equal(body.purchases.length, 1)
+              deepEqual(body.favorites, {
                 animal: 'Jaguar',
                 color: 'Jade',
                 purchase: {
@@ -507,13 +508,13 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'Bob')
-              assert.equal(body.age, 0)
-              assert.equal(body.comment, '')
-              assert.equal(body.purchases.length, 1)
-              assert.deepEqual(body.favorites, {
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'Bob')
+              equal(body.age, 0)
+              equal(body.comment, '')
+              equal(body.purchases.length, 1)
+              deepEqual(body.favorites, {
                 animal: '',
                 color: '',
                 purchase: {
@@ -528,27 +529,27 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /RepeatCustomer 200 - discriminator', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/RepeatCustomer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
-            assert.equal(body[0].account, account._id.toHexString())
-            assert.equal(body[0].name, 'Mike')
-            assert.equal(body[0].visits, 24)
-            assert.equal(body[0].status, 'Awesome')
-            assert.equal(body[0].job, 'Hunter')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
+            equal(body[0].account, account._id.toHexString())
+            equal(body[0].name, 'Mike')
+            equal(body[0].visits, 24)
+            equal(body[0].status, 'Awesome')
+            equal(body[0].job, 'Hunter')
             done()
           }
         )
       })
 
       it('GET /RepeatCustomer/:id?populate=account 200 - populate discriminator field from base schema', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/RepeatCustomer/${repeatCustomer._id}`,
             qs: {
@@ -557,23 +558,23 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.ok(body.account)
-            assert.equal(body.account._id, account._id.toHexString())
-            assert.equal(body.account.accountNumber, '123XYZ')
-            assert.equal(body.account.points, 244)
-            assert.equal(body.name, 'Mike')
-            assert.equal(body.visits, 24)
-            assert.equal(body.status, 'Awesome')
-            assert.equal(body.job, 'Hunter')
+            ok(!err)
+            equal(res.statusCode, 200)
+            ok(body.account)
+            equal(body.account._id, account._id.toHexString())
+            equal(body.account.accountNumber, '123XYZ')
+            equal(body.account.points, 244)
+            equal(body.name, 'Mike')
+            equal(body.visits, 24)
+            equal(body.status, 'Awesome')
+            equal(body.job, 'Hunter')
             done()
           }
         )
       })
 
       it('GET /Invoice/:id?populate=customer 200 - populated discriminator', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice/${repeatCustomerInvoice._id}`,
             qs: {
@@ -582,15 +583,15 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.ok(body.customer)
-            assert.equal(body.amount, 200)
-            assert.equal(body.receipt, 'B')
-            assert.equal(body.customer.name, 'Mike')
-            assert.equal(body.customer.visits, 24)
-            assert.equal(body.customer.status, 'Awesome')
-            assert.equal(body.customer.job, 'Hunter')
+            ok(!err)
+            equal(res.statusCode, 200)
+            ok(body.customer)
+            equal(body.amount, 200)
+            equal(body.receipt, 'B')
+            equal(body.customer.name, 'Mike')
+            equal(body.customer.visits, 24)
+            equal(body.customer.status, 'Awesome')
+            equal(body.customer.job, 'Hunter')
             done()
           }
         )
@@ -739,19 +740,19 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
-            assert.equal(body[0].name, 'Bob')
-            assert.equal(body[0].age, undefined)
-            assert.equal(body[0].comment, 'Boo')
-            assert.deepEqual(body[0].favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
+            equal(body[0].name, 'Bob')
+            equal(body[0].age, undefined)
+            equal(body[0].comment, 'Boo')
+            deepEqual(body[0].favorites, {
               color: 'Black',
               purchase: {
                 item: product._id.toHexString()
@@ -763,7 +764,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer?distinct=age 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -772,16 +773,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 0)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 0)
             done()
           }
         )
       })
 
       it('GET /Customer?distinct=comment 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -790,28 +791,28 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
-            assert.equal(body[0], 'Boo')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
+            equal(body[0], 'Boo')
             done()
           }
         )
       })
 
       it('GET /Customer/:id 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.name, 'Bob')
-            assert.equal(body.age, undefined)
-            assert.equal(body.comment, 'Boo')
-            assert.deepEqual(body.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.name, 'Bob')
+            equal(body.age, undefined)
+            equal(body.comment, 'Boo')
+            deepEqual(body.favorites, {
               color: 'Black',
               purchase: {
                 item: product._id.toHexString()
@@ -823,7 +824,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer/:id?distinct=age 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             qs: {
@@ -832,16 +833,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 0)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 0)
             done()
           }
         )
       })
 
       it('GET /Customer/:id?distinct=comment 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             qs: {
@@ -850,17 +851,17 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
-            assert.equal(body[0], 'Boo')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
+            equal(body[0], 'Boo')
             done()
           }
         )
       })
 
       it('GET /Customer?populate=favorites.purchase.item,purchases.item,returns 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -869,13 +870,13 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
-            assert.equal(body[0].name, 'Bob')
-            assert.equal(body[0].age, undefined)
-            assert.equal(body[0].comment, 'Boo')
-            assert.deepEqual(body[0].favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
+            equal(body[0].name, 'Bob')
+            equal(body[0].age, undefined)
+            equal(body[0].comment, 'Boo')
+            deepEqual(body[0].favorites, {
               color: 'Black',
               purchase: {
                 item: {
@@ -887,24 +888,24 @@ module.exports = function(createFn, setup, dismantle) {
                 }
               }
             })
-            assert.equal(body[0].purchases.length, 1)
-            assert.ok(body[0].purchases[0].item)
-            assert.equal(body[0].purchases[0].item._id, product._id.toHexString())
-            assert.equal(body[0].purchases[0].item.name, 'Bobsleigh')
-            assert.equal(body[0].purchases[0].item.price, 42)
-            assert.deepEqual(body[0].purchases[0].item.department, {})
-            assert.equal(body[0].purchases[0].number, undefined)
-            assert.equal(body[0].returns.length, 1)
-            assert.equal(body[0].returns[0].name, 'Bobsleigh')
-            assert.equal(body[0].returns[0].price, 42)
-            assert.deepEqual(body[0].returns[0].department, {})
+            equal(body[0].purchases.length, 1)
+            ok(body[0].purchases[0].item)
+            equal(body[0].purchases[0].item._id, product._id.toHexString())
+            equal(body[0].purchases[0].item.name, 'Bobsleigh')
+            equal(body[0].purchases[0].item.price, 42)
+            deepEqual(body[0].purchases[0].item.department, {})
+            equal(body[0].purchases[0].number, undefined)
+            equal(body[0].returns.length, 1)
+            equal(body[0].returns[0].name, 'Bobsleigh')
+            equal(body[0].returns[0].price, 42)
+            deepEqual(body[0].returns[0].department, {})
             done()
           }
         )
       })
 
       it('GET /Customer/:id?populate=favorites.purchase.item,purchases.item,returns 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             qs: {
@@ -913,12 +914,12 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.name, 'Bob')
-            assert.equal(body.age, undefined)
-            assert.equal(body.comment, 'Boo')
-            assert.deepEqual(body.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.name, 'Bob')
+            equal(body.age, undefined)
+            equal(body.comment, 'Boo')
+            deepEqual(body.favorites, {
               color: 'Black',
               purchase: {
                 item: {
@@ -930,24 +931,24 @@ module.exports = function(createFn, setup, dismantle) {
                 }
               }
             })
-            assert.equal(body.purchases.length, 1)
-            assert.ok(body.purchases[0].item)
-            assert.equal(body.purchases[0].item._id, product._id.toHexString())
-            assert.equal(body.purchases[0].item.name, 'Bobsleigh')
-            assert.equal(body.purchases[0].item.price, 42)
-            assert.deepEqual(body.purchases[0].item.department, {})
-            assert.equal(body.purchases[0].number, undefined)
-            assert.equal(body.returns.length, 1)
-            assert.equal(body.returns[0].name, 'Bobsleigh')
-            assert.equal(body.returns[0].price, 42)
-            assert.deepEqual(body.returns[0].department, {})
+            equal(body.purchases.length, 1)
+            ok(body.purchases[0].item)
+            equal(body.purchases[0].item._id, product._id.toHexString())
+            equal(body.purchases[0].item.name, 'Bobsleigh')
+            equal(body.purchases[0].item.price, 42)
+            deepEqual(body.purchases[0].item.department, {})
+            equal(body.purchases[0].number, undefined)
+            equal(body.returns.length, 1)
+            equal(body.returns[0].name, 'Bobsleigh')
+            equal(body.returns[0].price, 42)
+            deepEqual(body.returns[0].department, {})
             done()
           }
         )
       })
 
       it('GET /Invoice?populate=customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice`,
             qs: {
@@ -956,16 +957,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
-            assert.ok(body[0].customer)
-            assert.equal(body[0].amount, undefined)
-            assert.equal(body[0].receipt, 'A')
-            assert.equal(body[0].customer.name, 'Bob')
-            assert.equal(body[0].customer.age, undefined)
-            assert.equal(body[0].customer.comment, 'Boo')
-            assert.deepEqual(body[0].customer.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
+            ok(body[0].customer)
+            equal(body[0].amount, undefined)
+            equal(body[0].receipt, 'A')
+            equal(body[0].customer.name, 'Bob')
+            equal(body[0].customer.age, undefined)
+            equal(body[0].customer.comment, 'Boo')
+            deepEqual(body[0].customer.favorites, {
               color: 'Black',
               purchase: {
                 item: product._id.toHexString()
@@ -977,7 +978,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Invoice/:id?populate=customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice/${invoice._id}`,
             qs: {
@@ -986,15 +987,15 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.ok(body.customer)
-            assert.equal(body.amount, undefined)
-            assert.equal(body.receipt, 'A')
-            assert.equal(body.customer.name, 'Bob')
-            assert.equal(body.customer.age, undefined)
-            assert.equal(body.customer.comment, 'Boo')
-            assert.deepEqual(body.customer.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            ok(body.customer)
+            equal(body.amount, undefined)
+            equal(body.receipt, 'A')
+            equal(body.customer.name, 'Bob')
+            equal(body.customer.age, undefined)
+            equal(body.customer.comment, 'Boo')
+            deepEqual(body.customer.favorites, {
               color: 'Black',
               purchase: {
                 item: product._id.toHexString()
@@ -1025,12 +1026,12 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'John')
-              assert.equal(body.age, undefined)
-              assert.equal(body.comment, 'Jumbo')
-              assert.deepEqual(body.favorites, {
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'John')
+              equal(body.age, undefined)
+              equal(body.comment, 'Jumbo')
+              deepEqual(body.favorites, {
                 color: 'Jade',
                 purchase: {
                   item: product._id.toHexString()
@@ -1038,9 +1039,9 @@ module.exports = function(createFn, setup, dismantle) {
               })
 
               db.models.Customer.findById(customer._id, (err, customer) => {
-                assert.ok(!err)
-                assert.equal(customer.age, 12)
-                assert.deepEqual(customer.favorites.toObject(), {
+                ok(!err)
+                equal(customer.age, 12)
+                deepEqual(customer.favorites.toObject(), {
                   animal: 'Boar',
                   color: 'Jade',
                   purchase: {
@@ -1072,12 +1073,12 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'Bob')
-              assert.equal(body.age, undefined)
-              assert.equal(body.comment, '')
-              assert.deepEqual(body.favorites, {
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'Bob')
+              equal(body.age, undefined)
+              equal(body.comment, '')
+              deepEqual(body.favorites, {
                 color: '',
                 purchase: {
                   item: product._id.toHexString()
@@ -1085,9 +1086,9 @@ module.exports = function(createFn, setup, dismantle) {
               })
 
               db.models.Customer.findById(customer._id, (err, customer) => {
-                assert.ok(!err)
-                assert.equal(customer.age, 12)
-                assert.deepEqual(customer.favorites.toObject(), {
+                ok(!err)
+                equal(customer.age, 12)
+                deepEqual(customer.favorites.toObject(), {
                   animal: 'Boar',
                   color: '',
                   purchase: {
@@ -1103,25 +1104,25 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /RepeatCustomer 200 - discriminator', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/RepeatCustomer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body[0].name, 'Mike')
-            assert.equal(body[0].visits, 24)
-            assert.equal(body[0].status, 'Awesome')
-            assert.equal(body[0].job, undefined)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body[0].name, 'Mike')
+            equal(body[0].visits, 24)
+            equal(body[0].status, 'Awesome')
+            equal(body[0].job, undefined)
             done()
           }
         )
       })
 
       it('GET /RepeatCustomer/:id?populate=account 200 - populate discriminator field from base schema', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/RepeatCustomer/${repeatCustomer._id}`,
             qs: {
@@ -1130,23 +1131,23 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.ok(body.account)
-            assert.equal(body.account._id, account._id.toHexString())
-            assert.equal(body.account.accountNumber, undefined)
-            assert.equal(body.account.points, 244)
-            assert.equal(body.name, 'Mike')
-            assert.equal(body.visits, 24)
-            assert.equal(body.status, 'Awesome')
-            assert.equal(body.job, undefined)
+            ok(!err)
+            equal(res.statusCode, 200)
+            ok(body.account)
+            equal(body.account._id, account._id.toHexString())
+            equal(body.account.accountNumber, undefined)
+            equal(body.account.points, 244)
+            equal(body.name, 'Mike')
+            equal(body.visits, 24)
+            equal(body.status, 'Awesome')
+            equal(body.job, undefined)
             done()
           }
         )
       })
 
       it('GET /Invoice/:id?populate=customer 200 - populated discriminator', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice/${repeatCustomerInvoice._id}`,
             qs: {
@@ -1155,15 +1156,15 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.ok(body.customer)
-            assert.equal(body.amount, undefined)
-            assert.equal(body.receipt, 'B')
-            assert.equal(body.customer.name, 'Mike')
-            assert.equal(body.customer.visits, 24)
-            assert.equal(body.customer.status, 'Awesome')
-            assert.equal(body.customer.job, undefined)
+            ok(!err)
+            equal(res.statusCode, 200)
+            ok(body.customer)
+            equal(body.amount, undefined)
+            equal(body.receipt, 'B')
+            equal(body.customer.name, 'Mike')
+            equal(body.customer.visits, 24)
+            equal(body.customer.status, 'Awesome')
+            equal(body.customer.job, undefined)
             done()
           }
         )
@@ -1297,20 +1298,20 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
-            assert.equal(body[0].name, 'Bob')
-            assert.equal(body[0].age, undefined)
-            assert.equal(body[0].comment, undefined)
-            assert.equal(body[0].purchases.length, 1)
-            assert.deepEqual(body[0].favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
+            equal(body[0].name, 'Bob')
+            equal(body[0].age, undefined)
+            equal(body[0].comment, undefined)
+            equal(body[0].purchases.length, 1)
+            deepEqual(body[0].favorites, {
               purchase: {
                 item: product._id.toHexString()
               }
@@ -1321,7 +1322,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer?distinct=age 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -1330,16 +1331,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 0)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 0)
             done()
           }
         )
       })
 
       it('GET /Customer?distinct=comment 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -1348,28 +1349,28 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 0)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 0)
             done()
           }
         )
       })
 
       it('GET /Customer/:id 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.name, 'Bob')
-            assert.equal(body.age, undefined)
-            assert.equal(body.comment, undefined)
-            assert.equal(body.purchases.length, 1)
-            assert.deepEqual(body.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.name, 'Bob')
+            equal(body.age, undefined)
+            equal(body.comment, undefined)
+            equal(body.purchases.length, 1)
+            deepEqual(body.favorites, {
               purchase: {
                 item: product._id.toHexString()
               }
@@ -1380,7 +1381,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer/:id?distinct=age 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             qs: {
@@ -1389,16 +1390,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 0)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 0)
             done()
           }
         )
       })
 
       it('GET /Customer/:id?distinct=comment 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             qs: {
@@ -1407,16 +1408,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 0)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 0)
             done()
           }
         )
       })
 
       it('GET /Customer?populate=favorites.purchase.item,purchases.item,returns 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -1425,13 +1426,13 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
-            assert.equal(body[0].name, 'Bob')
-            assert.equal(body[0].age, undefined)
-            assert.equal(body[0].comment, undefined)
-            assert.deepEqual(body[0].favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
+            equal(body[0].name, 'Bob')
+            equal(body[0].age, undefined)
+            equal(body[0].comment, undefined)
+            deepEqual(body[0].favorites, {
               purchase: {
                 item: {
                   __v: 0,
@@ -1441,24 +1442,24 @@ module.exports = function(createFn, setup, dismantle) {
                 }
               }
             })
-            assert.equal(body[0].purchases.length, 1)
-            assert.ok(body[0].purchases[0].item)
-            assert.equal(body[0].purchases[0].item._id, product._id.toHexString())
-            assert.equal(body[0].purchases[0].item.name, 'Bobsleigh')
-            assert.equal(body[0].purchases[0].item.price, undefined)
-            assert.deepEqual(body[0].purchases[0].item.department, {})
-            assert.equal(body[0].purchases[0].number, undefined)
-            assert.equal(body[0].returns.length, 1)
-            assert.equal(body[0].returns[0].name, 'Bobsleigh')
-            assert.equal(body[0].returns[0].price, undefined)
-            assert.deepEqual(body[0].returns[0].department, {})
+            equal(body[0].purchases.length, 1)
+            ok(body[0].purchases[0].item)
+            equal(body[0].purchases[0].item._id, product._id.toHexString())
+            equal(body[0].purchases[0].item.name, 'Bobsleigh')
+            equal(body[0].purchases[0].item.price, undefined)
+            deepEqual(body[0].purchases[0].item.department, {})
+            equal(body[0].purchases[0].number, undefined)
+            equal(body[0].returns.length, 1)
+            equal(body[0].returns[0].name, 'Bobsleigh')
+            equal(body[0].returns[0].price, undefined)
+            deepEqual(body[0].returns[0].department, {})
             done()
           }
         )
       })
 
       it('GET /Customer/:id?populate=favorites.purchase.item,purchases.item,returns 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customer._id}`,
             qs: {
@@ -1467,12 +1468,12 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.name, 'Bob')
-            assert.equal(body.age, undefined)
-            assert.equal(body.comment, undefined)
-            assert.deepEqual(body.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.name, 'Bob')
+            equal(body.age, undefined)
+            equal(body.comment, undefined)
+            deepEqual(body.favorites, {
               purchase: {
                 item: {
                   __v: 0,
@@ -1482,24 +1483,24 @@ module.exports = function(createFn, setup, dismantle) {
                 }
               }
             })
-            assert.equal(body.purchases.length, 1)
-            assert.ok(body.purchases[0].item)
-            assert.equal(body.purchases[0].item._id, product._id.toHexString())
-            assert.equal(body.purchases[0].item.name, 'Bobsleigh')
-            assert.equal(body.purchases[0].item.price, undefined)
-            assert.deepEqual(body.purchases[0].item.department, {})
-            assert.equal(body.purchases[0].number, undefined)
-            assert.equal(body.returns.length, 1)
-            assert.equal(body.returns[0].name, 'Bobsleigh')
-            assert.equal(body.returns[0].price, undefined)
-            assert.deepEqual(body.returns[0].department, {})
+            equal(body.purchases.length, 1)
+            ok(body.purchases[0].item)
+            equal(body.purchases[0].item._id, product._id.toHexString())
+            equal(body.purchases[0].item.name, 'Bobsleigh')
+            equal(body.purchases[0].item.price, undefined)
+            deepEqual(body.purchases[0].item.department, {})
+            equal(body.purchases[0].number, undefined)
+            equal(body.returns.length, 1)
+            equal(body.returns[0].name, 'Bobsleigh')
+            equal(body.returns[0].price, undefined)
+            deepEqual(body.returns[0].department, {})
             done()
           }
         )
       })
 
       it('GET /Invoice?populate=customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice`,
             qs: {
@@ -1508,16 +1509,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
-            assert.ok(body[0].customer)
-            assert.equal(body[0].amount, undefined)
-            assert.equal(body[0].receipt, undefined)
-            assert.equal(body[0].customer.name, 'Bob')
-            assert.equal(body[0].customer.age, undefined)
-            assert.equal(body[0].customer.comment, undefined)
-            assert.deepEqual(body[0].customer.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
+            ok(body[0].customer)
+            equal(body[0].amount, undefined)
+            equal(body[0].receipt, undefined)
+            equal(body[0].customer.name, 'Bob')
+            equal(body[0].customer.age, undefined)
+            equal(body[0].customer.comment, undefined)
+            deepEqual(body[0].customer.favorites, {
               purchase: {
                 item: product._id.toHexString()
               }
@@ -1528,7 +1529,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Invoice/:id?populate=customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice/${invoice._id}`,
             qs: {
@@ -1537,15 +1538,15 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.ok(body.customer)
-            assert.equal(body.amount, undefined)
-            assert.equal(body.receipt, undefined)
-            assert.equal(body.customer.name, 'Bob')
-            assert.equal(body.customer.age, undefined)
-            assert.equal(body.customer.comment, undefined)
-            assert.deepEqual(body.customer.favorites, {
+            ok(!err)
+            equal(res.statusCode, 200)
+            ok(body.customer)
+            equal(body.amount, undefined)
+            equal(body.receipt, undefined)
+            equal(body.customer.name, 'Bob')
+            equal(body.customer.age, undefined)
+            equal(body.customer.comment, undefined)
+            deepEqual(body.customer.favorites, {
               purchase: {
                 item: product._id.toHexString()
               }
@@ -1575,22 +1576,22 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'John')
-              assert.equal(body.age, undefined)
-              assert.equal(body.comment, undefined)
-              assert.deepEqual(body.favorites, {
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'John')
+              equal(body.age, undefined)
+              equal(body.comment, undefined)
+              deepEqual(body.favorites, {
                 purchase: {
                   item: product._id.toHexString()
                 }
               })
 
               db.models.Customer.findById(customer._id, (err, customer) => {
-                assert.ok(!err)
-                assert.equal(customer.age, 12)
-                assert.equal(customer.comment, 'Boo')
-                assert.deepEqual(customer.favorites.toObject(), {
+                ok(!err)
+                equal(customer.age, 12)
+                equal(customer.comment, 'Boo')
+                deepEqual(customer.favorites.toObject(), {
                   animal: 'Boar',
                   color: 'Black',
                   purchase: {
@@ -1622,22 +1623,22 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'Bob')
-              assert.equal(body.age, undefined)
-              assert.equal(body.comment, undefined)
-              assert.deepEqual(body.favorites, {
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'Bob')
+              equal(body.age, undefined)
+              equal(body.comment, undefined)
+              deepEqual(body.favorites, {
                 purchase: {
                   item: product._id.toHexString()
                 }
               })
 
               db.models.Customer.findById(customer._id, (err, customer) => {
-                assert.ok(!err)
-                assert.equal(customer.age, 12)
-                assert.equal(customer.comment, 'Boo')
-                assert.deepEqual(customer.favorites.toObject(), {
+                ok(!err)
+                equal(customer.age, 12)
+                equal(customer.comment, 'Boo')
+                deepEqual(customer.favorites.toObject(), {
                   animal: 'Boar',
                   color: 'Black',
                   purchase: {
@@ -1653,25 +1654,25 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /RepeatCustomer 200 - discriminator', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/RepeatCustomer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body[0].name, 'Mike')
-            assert.equal(body[0].visits, 24)
-            assert.equal(body[0].status, undefined)
-            assert.equal(body[0].job, undefined)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body[0].name, 'Mike')
+            equal(body[0].visits, 24)
+            equal(body[0].status, undefined)
+            equal(body[0].job, undefined)
             done()
           }
         )
       })
 
       it('GET /RepeatCustomer/:id?populate=account 200 - populate discriminator field from base schema', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/RepeatCustomer/${repeatCustomer._id}`,
             qs: {
@@ -1680,23 +1681,23 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.ok(body.account)
-            assert.equal(body.account._id, account._id.toHexString())
-            assert.equal(body.account.accountNumber, undefined)
-            assert.equal(body.account.points, undefined)
-            assert.equal(body.name, 'Mike')
-            assert.equal(body.visits, 24)
-            assert.equal(body.status, undefined)
-            assert.equal(body.job, undefined)
+            ok(!err)
+            equal(res.statusCode, 200)
+            ok(body.account)
+            equal(body.account._id, account._id.toHexString())
+            equal(body.account.accountNumber, undefined)
+            equal(body.account.points, undefined)
+            equal(body.name, 'Mike')
+            equal(body.visits, 24)
+            equal(body.status, undefined)
+            equal(body.job, undefined)
             done()
           }
         )
       })
 
       it('GET /Invoice/:id?populate=customer 200 - populated discriminator', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice/${repeatCustomerInvoice._id}`,
             qs: {
@@ -1705,15 +1706,15 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.ok(body.customer)
-            assert.equal(body.amount, undefined)
-            assert.equal(body.receipt, undefined)
-            assert.equal(body.customer.name, 'Mike')
-            assert.equal(body.customer.visits, 24)
-            assert.equal(body.customer.status, undefined)
-            assert.equal(body.customer.job, undefined)
+            ok(!err)
+            equal(res.statusCode, 200)
+            ok(body.customer)
+            equal(body.amount, undefined)
+            equal(body.receipt, undefined)
+            equal(body.customer.name, 'Mike')
+            equal(body.customer.visits, 24)
+            equal(body.customer.status, undefined)
+            equal(body.customer.job, undefined)
             done()
           }
         )
@@ -1747,15 +1748,15 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer 500', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(body, {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(body, {
               name: 'Error',
               message: 'Something went wrong'
             })

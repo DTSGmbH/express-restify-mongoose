@@ -1,13 +1,12 @@
 'use strict'
 
-const assert = require('assert')
-const sinon = require('sinon')
+import { equal } from 'assert'
+import { assert as _assert, match, spy } from 'sinon'
+import ensureContentType from '../../../src/middleware/ensureContentType'
 
 describe('ensureContentType', () => {
-  const ensureContentType = require('../../../src/middleware/ensureContentType')
-
-  let onError = sinon.spy()
-  let next = sinon.spy()
+  let onError = spy()
+  let next = spy()
 
   afterEach(() => {
     onError.resetHistory()
@@ -23,10 +22,10 @@ describe('ensureContentType', () => {
 
     ensureContentType({ onError })(req, {}, next)
 
-    sinon.assert.calledOnce(onError)
-    sinon.assert.calledWithExactly(onError, sinon.match.instanceOf(Error) /*new Error('missing_content_type')*/, req, {}, next)
-    sinon.assert.notCalled(next)
-    assert.equal(req.access, undefined)
+    _assert.calledOnce(onError)
+    _assert.calledWithExactly(onError, match.instanceOf(Error) /*new Error('missing_content_type')*/, req, {}, next)
+    _assert.notCalled(next)
+    equal(req.access, undefined)
   })
 
   it('calls next with an error (invalid_content_type)', () => {
@@ -40,10 +39,10 @@ describe('ensureContentType', () => {
 
     ensureContentType({ onError })(req, {}, next)
 
-    sinon.assert.calledOnce(onError)
-    sinon.assert.calledWithExactly(onError, sinon.match.instanceOf(Error) /*new Error('invalid_content_type')*/, req, {}, next)
-    sinon.assert.notCalled(next)
-    assert.equal(req.access, undefined)
+    _assert.calledOnce(onError)
+    _assert.calledWithExactly(onError, match.instanceOf(Error) /*new Error('invalid_content_type')*/, req, {}, next)
+    _assert.notCalled(next)
+    equal(req.access, undefined)
   })
 
   it('calls next', () => {
@@ -56,7 +55,7 @@ describe('ensureContentType', () => {
 
     ensureContentType({ onError })(req, {}, next)
 
-    sinon.assert.calledOnce(next)
-    sinon.assert.calledWithExactly(next)
+    _assert.calledOnce(next)
+    _assert.calledWithExactly(next)
   })
 })

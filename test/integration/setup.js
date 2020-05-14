@@ -1,16 +1,16 @@
 'use strict'
 
-const defaults = require('lodash.defaults')
-const mongoose = require('mongoose')
+import defaults from 'lodash.defaults'
+import mongoose from 'mongoose'
 const Schema = mongoose.Schema
-const util = require('util')
+// import util from 'util'
 
 mongoose.set('useNewUrlParser', true)
 mongoose.set('useFindAndModify', false)
 mongoose.set('useCreateIndex', true)
 mongoose.set('useUnifiedTopology', true)
 
-module.exports = function() {
+export default function() {
   const ProductSchema = new Schema({
     name: { type: String, required: true },
     department: {

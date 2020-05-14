@@ -1,11 +1,12 @@
 'use strict'
 
-const assert = require('assert')
-const request = require('request')
+import { deepEqual, equal, ok } from 'assert'
+import { post } from 'request'
+import * as erm from '../../src/express-restify-mongoose'
+import dbSetup from './setup'
 
-module.exports = function(createFn, setup, dismantle) {
-  const erm = require('../../src/express-restify-mongoose')
-  const db = require('./setup')()
+export default function(createFn, setup, dismantle) {
+  const db = dbSetup()
 
   let testPort = 30023
   let testUrl = `http://localhost:${testPort}`
@@ -33,7 +34,7 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Hook 201', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Hook`,
           json: {
@@ -42,18 +43,18 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 201)
-          assert.ok(body._id)
-          assert.equal(body.preSaveError, false)
-          assert.equal(body.postSaveError, false)
+          ok(!err)
+          equal(res.statusCode, 201)
+          ok(body._id)
+          equal(body.preSaveError, false)
+          equal(body.postSaveError, false)
           done()
         }
       )
     })
 
     it('POST /Hook 400', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Hook`,
           json: {
@@ -62,9 +63,9 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
-          assert.deepEqual(body, {
+          ok(!err)
+          equal(res.statusCode, 400)
+          deepEqual(body, {
             name: 'Error',
             message: 'AsyncPreSaveError'
           })
@@ -74,7 +75,7 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('POST /Hook 400', done => {
-      request.post(
+      post(
         {
           url: `${testUrl}/api/v1/Hook`,
           json: {
@@ -83,9 +84,9 @@ module.exports = function(createFn, setup, dismantle) {
           }
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 400)
-          assert.deepEqual(body, {
+          ok(!err)
+          equal(res.statusCode, 400)
+          deepEqual(body, {
             name: 'Error',
             message: 'AsyncPostSaveError'
           })

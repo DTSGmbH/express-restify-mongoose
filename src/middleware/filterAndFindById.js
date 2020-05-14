@@ -1,9 +1,9 @@
 'use strict'
 
-const http = require('http')
+import { STATUS_CODES } from 'http'
 
-module.exports = function(model, options) {
-  const errorHandler = require('../errorHandler')(options)
+export default function(model, options) {
+  const errorHandler = require('../errorHandler').default(options)
 
   return function(req, res, next) {
     const contextModel = (req.erm && req.erm.model) || model
@@ -23,7 +23,7 @@ module.exports = function(model, options) {
         .exec()
         .then(doc => {
           if (!doc) {
-            return errorHandler(req, res, next)(new Error(http.STATUS_CODES[404]))
+            return errorHandler(req, res, next)(new Error(STATUS_CODES[404]))
           }
 
           req.erm.document = doc

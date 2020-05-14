@@ -1,12 +1,13 @@
 'use strict'
 
-const assert = require('assert')
-const mongoose = require('mongoose')
-const request = require('request')
+import { deepEqual, equal, ok } from 'assert'
+import mongoose from 'mongoose'
+import { get } from 'request'
+import * as erm from '../../src/express-restify-mongoose'
+import dbSetup from './setup'
 
-module.exports = function(createFn, setup, dismantle) {
-  const erm = require('../../src/express-restify-mongoose')
-  const db = require('./setup')()
+export default function(createFn, setup, dismantle) {
+  const db = dbSetup()
 
   const testPort = 30023
   const testUrl = `http://localhost:${testPort}`
@@ -109,58 +110,58 @@ module.exports = function(createFn, setup, dismantle) {
     })
 
     it('GET /Customer 200', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          assert.equal(body.length, 3)
+          ok(!err)
+          equal(res.statusCode, 200)
+          equal(body.length, 3)
           done()
         }
       )
     })
 
     it('GET /Customer/:id 200 - created id', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${customers[0]._id}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 200)
-          assert.equal(body.name, 'Bob')
+          ok(!err)
+          equal(res.statusCode, 200)
+          equal(body.name, 'Bob')
           done()
         }
       )
     })
 
     it('GET /Customer/:id 404 - invalid id', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${invalidId}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 404)
+          ok(!err)
+          equal(res.statusCode, 404)
           done()
         }
       )
     })
 
     it('GET /Customer/:id 404 - random id', done => {
-      request.get(
+      get(
         {
           url: `${testUrl}/api/v1/Customer/${randomId}`,
           json: true
         },
         (err, res, body) => {
-          assert.ok(!err)
-          assert.equal(res.statusCode, 404)
+          ok(!err)
+          equal(res.statusCode, 404)
           done()
         }
       )
@@ -168,7 +169,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('ignore unknown parameters', () => {
       it('GET /Customer?foo=bar 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -177,9 +178,9 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             done()
           }
         )
@@ -188,7 +189,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('limit', () => {
       it('GET /Customer?limit=1 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -197,16 +198,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
             done()
           }
         )
       })
 
       it('GET /Customer?limit=foo 400 - evaluates to NaN', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -215,9 +216,9 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(body, {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(body, {
               name: 'Error',
               message: 'invalid_limit_value'
             })
@@ -229,7 +230,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('skip', () => {
       it('GET /Customer?skip=1 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -238,16 +239,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 2)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 2)
             done()
           }
         )
       })
 
       it('GET /Customer?skip=foo 400 - evaluates to NaN', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -256,9 +257,9 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(body, {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(body, {
               name: 'Error',
               message: 'invalid_skip_value'
             })
@@ -270,7 +271,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('sort', () => {
       it('GET /Customer?sort=name 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -279,19 +280,19 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
-            assert.equal(body[0].name, 'Bob')
-            assert.equal(body[1].name, 'John')
-            assert.equal(body[2].name, 'Mike')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
+            equal(body[0].name, 'Bob')
+            equal(body[1].name, 'John')
+            equal(body[2].name, 'Mike')
             done()
           }
         )
       })
 
       it('GET /Customer?sort=-name 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -300,19 +301,19 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
-            assert.equal(body[0].name, 'Mike')
-            assert.equal(body[1].name, 'John')
-            assert.equal(body[2].name, 'Bob')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
+            equal(body[0].name, 'Mike')
+            equal(body[1].name, 'John')
+            equal(body[2].name, 'Bob')
             done()
           }
         )
       })
 
       it('GET /Customer?sort={"name":1} 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -323,19 +324,19 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
-            assert.equal(body[0].name, 'Bob')
-            assert.equal(body[1].name, 'John')
-            assert.equal(body[2].name, 'Mike')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
+            equal(body[0].name, 'Bob')
+            equal(body[1].name, 'John')
+            equal(body[2].name, 'Mike')
             done()
           }
         )
       })
 
       it('GET /Customer?sort={"name":-1} 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -346,12 +347,12 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
-            assert.equal(body[0].name, 'Mike')
-            assert.equal(body[1].name, 'John')
-            assert.equal(body[2].name, 'Bob')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
+            equal(body[0].name, 'Mike')
+            equal(body[1].name, 'John')
+            equal(body[2].name, 'Bob')
             done()
           }
         )
@@ -360,7 +361,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('query', () => {
       it('GET /Customer?query={} 200 - empty object', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -369,16 +370,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             done()
           }
         )
       })
 
       it('GET /Customer?query={"$near": { "$geometry": { "coordinates": [45.2667, 72.1500] } }} 200 - coordinates', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -397,16 +398,16 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
             done()
           }
         )
       })
 
       it('GET /Customer?query=invalidJson 400 - invalid json', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -415,9 +416,9 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 400)
-            assert.deepEqual(body, {
+            ok(!err)
+            equal(res.statusCode, 400)
+            deepEqual(body, {
               name: 'Error',
               message: 'invalid_json_query'
             })
@@ -428,7 +429,7 @@ module.exports = function(createFn, setup, dismantle) {
 
       describe('string', () => {
         it('GET /Customer?query={"name":"John"} 200 - exact match', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Customer`,
               qs: {
@@ -439,17 +440,17 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 1)
-              assert.equal(body[0].name, 'John')
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 1)
+              equal(body[0].name, 'John')
               done()
             }
           )
         })
 
         it('GET /Customer?query={"favorites.animal":"Jaguar"} 200 - exact match (nested property)', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Customer`,
               qs: {
@@ -460,17 +461,17 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 1)
-              assert.equal(body[0].favorites.animal, 'Jaguar')
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 1)
+              equal(body[0].favorites.animal, 'Jaguar')
               done()
             }
           )
         })
 
         it('GET /Customer?query={"name":{"$regex":"^J"}} 200 - name starting with', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Customer`,
               qs: {
@@ -481,17 +482,17 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 1)
-              assert.ok(body[0].name[0] === 'J')
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 1)
+              ok(body[0].name[0] === 'J')
               done()
             }
           )
         })
 
         it('GET /Customer?query={"name":["Bob","John"]}&sort=name 200 - in', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Customer`,
               qs: {
@@ -503,11 +504,11 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 2)
-              assert.equal(body[0].name, 'Bob')
-              assert.equal(body[1].name, 'John')
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 2)
+              equal(body[0].name, 'Bob')
+              equal(body[1].name, 'John')
               done()
             }
           )
@@ -516,7 +517,7 @@ module.exports = function(createFn, setup, dismantle) {
 
       describe('number', () => {
         it('GET /Customer?query={"age":"24"} 200 - exact match', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Customer`,
               qs: {
@@ -527,17 +528,17 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 1)
-              assert.equal(body[0].age, 24)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 1)
+              equal(body[0].age, 24)
               done()
             }
           )
         })
 
         it('GET /Customer?query={"age":["12","24"]}&sort=age 200 - in', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Customer`,
               qs: {
@@ -549,11 +550,11 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 2)
-              assert.equal(body[0].age, 12)
-              assert.equal(body[1].age, 24)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 2)
+              equal(body[0].age, 12)
+              equal(body[1].age, 24)
               done()
             }
           )
@@ -563,7 +564,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('select', () => {
       it('GET /Customer?select=["name"] 200 - only include', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -572,13 +573,13 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(item => {
-              assert.equal(Object.keys(item).length, 2)
-              assert.ok(item._id)
-              assert.ok(item.name)
+              equal(Object.keys(item).length, 2)
+              ok(item._id)
+              ok(item.name)
             })
             done()
           }
@@ -586,7 +587,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer?select=name 200 - only include', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -595,13 +596,13 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(item => {
-              assert.equal(Object.keys(item).length, 2)
-              assert.ok(item._id)
-              assert.ok(item.name)
+              equal(Object.keys(item).length, 2)
+              ok(item._id)
+              ok(item.name)
             })
             done()
           }
@@ -609,7 +610,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer?select=favorites.animal 200 - only include (nested field)', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -618,15 +619,15 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(item => {
-              assert.equal(Object.keys(item).length, 2)
-              assert.ok(item._id)
-              assert.ok(item.favorites)
-              assert.ok(item.favorites.animal)
-              assert.ok(item.favorites.color === undefined)
+              equal(Object.keys(item).length, 2)
+              ok(item._id)
+              ok(item.favorites)
+              ok(item.favorites.animal)
+              ok(item.favorites.color === undefined)
             })
             done()
           }
@@ -634,7 +635,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer?select=-name 200 - exclude name', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -643,11 +644,11 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(item => {
-              assert.ok(item.name === undefined)
+              ok(item.name === undefined)
             })
             done()
           }
@@ -655,7 +656,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer?select={"name":1} 200 - only include name', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -666,13 +667,13 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(item => {
-              assert.equal(Object.keys(item).length, 2)
-              assert.ok(item._id)
-              assert.ok(item.name)
+              equal(Object.keys(item).length, 2)
+              ok(item._id)
+              ok(item.name)
             })
             done()
           }
@@ -680,7 +681,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer?select={"name":0} 200 - exclude name', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -691,11 +692,11 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(item => {
-              assert.ok(item.name === undefined)
+              ok(item.name === undefined)
             })
             done()
           }
@@ -705,7 +706,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('populate', () => {
       it('GET /Invoice?populate=customer 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice`,
             qs: {
@@ -714,14 +715,14 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(invoice => {
-              assert.ok(invoice.customer)
-              assert.ok(invoice.customer._id)
-              assert.ok(invoice.customer.name)
-              assert.ok(invoice.customer.age)
+              ok(invoice.customer)
+              ok(invoice.customer._id)
+              ok(invoice.customer.name)
+              ok(invoice.customer.age)
             })
             done()
           }
@@ -729,7 +730,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Invoice?populate={path:"customer"} 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice`,
             qs: {
@@ -740,14 +741,14 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(invoice => {
-              assert.ok(invoice.customer)
-              assert.ok(invoice.customer._id)
-              assert.ok(invoice.customer.name)
-              assert.ok(invoice.customer.age)
+              ok(invoice.customer)
+              ok(invoice.customer._id)
+              ok(invoice.customer.name)
+              ok(invoice.customer.age)
             })
             done()
           }
@@ -755,7 +756,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Invoice?populate=[{path:"customer"}] 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice`,
             qs: {
@@ -768,14 +769,14 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(invoice => {
-              assert.ok(invoice.customer)
-              assert.ok(invoice.customer._id)
-              assert.ok(invoice.customer.name)
-              assert.ok(invoice.customer.age)
+              ok(invoice.customer)
+              ok(invoice.customer._id)
+              ok(invoice.customer.name)
+              ok(invoice.customer.age)
             })
             done()
           }
@@ -783,7 +784,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer?populate=favorites.purchase.item 200 - nested field', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -792,15 +793,15 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(customer => {
-              assert.ok(customer.favorites.purchase)
-              assert.ok(customer.favorites.purchase.item)
-              assert.ok(customer.favorites.purchase.item._id)
-              assert.ok(customer.favorites.purchase.item.name)
-              assert.ok(customer.favorites.purchase.number)
+              ok(customer.favorites.purchase)
+              ok(customer.favorites.purchase.item)
+              ok(customer.favorites.purchase.item._id)
+              ok(customer.favorites.purchase.item.name)
+              ok(customer.favorites.purchase.number)
             })
             done()
           }
@@ -808,7 +809,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Invoice?populate=customer.account 200 - ignore deep populate', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice`,
             qs: {
@@ -817,12 +818,12 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             body.forEach(invoice => {
-              assert.ok(invoice.customer)
-              assert.equal(typeof invoice.customer, 'string')
+              ok(invoice.customer)
+              equal(typeof invoice.customer, 'string')
             })
             done()
           }
@@ -830,7 +831,7 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Invoice?populate=evilCustomer 200 - ignore unknown field', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Invoice`,
             qs: {
@@ -839,9 +840,9 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
             done()
           }
         )
@@ -849,7 +850,7 @@ module.exports = function(createFn, setup, dismantle) {
 
       describe('with select', () => {
         it('GET Invoices?populate=customer&select=amount 200 - only include amount and customer document', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Invoice`,
               qs: {
@@ -859,16 +860,16 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 3)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 3)
               body.forEach(invoice => {
-                assert.ok(invoice.amount)
-                assert.ok(invoice.customer)
-                assert.ok(invoice.customer._id)
-                assert.ok(invoice.customer.name)
-                assert.ok(invoice.customer.age)
-                assert.equal(invoice.receipt, undefined)
+                ok(invoice.amount)
+                ok(invoice.customer)
+                ok(invoice.customer._id)
+                ok(invoice.customer.name)
+                ok(invoice.customer.age)
+                equal(invoice.receipt, undefined)
               })
               done()
             }
@@ -876,7 +877,7 @@ module.exports = function(createFn, setup, dismantle) {
         })
 
         it('GET Invoices?populate=customer&select=amount,customer.name 200 - only include amount and customer name', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Invoice`,
               qs: {
@@ -886,16 +887,16 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 3)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 3)
               body.forEach(invoice => {
-                assert.ok(invoice.amount)
-                assert.ok(invoice.customer)
-                assert.ok(invoice.customer._id)
-                assert.ok(invoice.customer.name)
-                assert.equal(invoice.customer.age, undefined)
-                assert.equal(invoice.receipt, undefined)
+                ok(invoice.amount)
+                ok(invoice.customer)
+                ok(invoice.customer._id)
+                ok(invoice.customer.name)
+                equal(invoice.customer.age, undefined)
+                equal(invoice.receipt, undefined)
               })
               done()
             }
@@ -903,7 +904,7 @@ module.exports = function(createFn, setup, dismantle) {
         })
 
         it('GET Invoices?populate=customer&select=customer.name 200 - include all invoice fields, but only include customer name', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Invoice`,
               qs: {
@@ -913,16 +914,16 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 3)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 3)
               body.forEach(invoice => {
-                assert.ok(invoice.amount)
-                assert.ok(invoice.receipt)
-                assert.ok(invoice.customer)
-                assert.ok(invoice.customer._id)
-                assert.ok(invoice.customer.name)
-                assert.equal(invoice.customer.age, undefined)
+                ok(invoice.amount)
+                ok(invoice.receipt)
+                ok(invoice.customer)
+                ok(invoice.customer._id)
+                ok(invoice.customer.name)
+                equal(invoice.customer.age, undefined)
               })
               done()
             }
@@ -930,7 +931,7 @@ module.exports = function(createFn, setup, dismantle) {
         })
 
         it('GET Invoices?populate=customer&select=-customer.name 200 - include all invoice and fields, but exclude customer name', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Invoice`,
               qs: {
@@ -940,16 +941,16 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 3)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 3)
               body.forEach(invoice => {
-                assert.ok(invoice.amount)
-                assert.ok(invoice.receipt)
-                assert.ok(invoice.customer)
-                assert.ok(invoice.customer._id)
-                assert.ok(invoice.customer.age)
-                assert.equal(invoice.customer.name, undefined)
+                ok(invoice.amount)
+                ok(invoice.receipt)
+                ok(invoice.customer)
+                ok(invoice.customer._id)
+                ok(invoice.customer.age)
+                equal(invoice.customer.name, undefined)
               })
               done()
             }
@@ -957,7 +958,7 @@ module.exports = function(createFn, setup, dismantle) {
         })
 
         it('GET Invoices?populate=customer&select=amount,-customer.-id,customer.name 200 - only include amount and customer name and exclude customer _id', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Invoice`,
               qs: {
@@ -967,16 +968,16 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 3)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 3)
               body.forEach(invoice => {
-                assert.ok(invoice.amount)
-                assert.ok(invoice.customer)
-                assert.ok(invoice.customer.name)
-                assert.equal(invoice.receipt, undefined)
-                assert.equal(invoice.customer._id, undefined)
-                assert.equal(invoice.customer.age, undefined)
+                ok(invoice.amount)
+                ok(invoice.customer)
+                ok(invoice.customer.name)
+                equal(invoice.receipt, undefined)
+                equal(invoice.customer._id, undefined)
+                equal(invoice.customer.age, undefined)
               })
               done()
             }
@@ -984,7 +985,7 @@ module.exports = function(createFn, setup, dismantle) {
         })
 
         it('GET Invoices?populate=customer&select=customer.name,customer.age 200 - only include customer name and age', done => {
-          request.get(
+          get(
             {
               url: `${testUrl}/api/v1/Invoice`,
               qs: {
@@ -994,16 +995,16 @@ module.exports = function(createFn, setup, dismantle) {
               json: true
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.length, 3)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.length, 3)
               body.forEach(invoice => {
-                assert.ok(invoice.amount)
-                assert.ok(invoice.receipt)
-                assert.ok(invoice.customer)
-                assert.ok(invoice.customer._id)
-                assert.ok(invoice.customer.name)
-                assert.ok(invoice.customer.age)
+                ok(invoice.amount)
+                ok(invoice.receipt)
+                ok(invoice.customer)
+                ok(invoice.customer._id)
+                ok(invoice.customer.name)
+                ok(invoice.customer.age)
               })
               done()
             }
@@ -1014,7 +1015,7 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('distinct', () => {
       it('GET /Customer?distinct=name 200 - array of unique names', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             qs: {
@@ -1023,12 +1024,12 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 3)
-            assert.equal(body[0], 'Bob')
-            assert.equal(body[1], 'John')
-            assert.equal(body[2], 'Mike')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 3)
+            equal(body[0], 'Bob')
+            equal(body[1], 'John')
+            equal(body[2], 'Mike')
             done()
           }
         )
@@ -1037,22 +1038,22 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('count', () => {
       it('GET /Customer/count 200', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/count`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.count, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.count, 3)
             done()
           }
         )
       })
 
       it('GET /Customer/count 200 - ignores sort', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/count`,
             qs: {
@@ -1063,9 +1064,9 @@ module.exports = function(createFn, setup, dismantle) {
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.count, 3)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.count, 3)
             done()
           }
         )
@@ -1074,43 +1075,43 @@ module.exports = function(createFn, setup, dismantle) {
 
     describe('shallow', () => {
       it('GET /Customer/:id/shallow 200 - created id', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${customers[0]._id}/shallow`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.name, 'Bob')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.name, 'Bob')
             done()
           }
         )
       })
 
       it('GET /Customer/:id/shallow 404 - invalid id', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${invalidId}/shallow`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 404)
+            ok(!err)
+            equal(res.statusCode, 404)
             done()
           }
         )
       })
 
       it('GET /Customer/:id/shallow 404 - random id', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer/${randomId}/shallow`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 404)
+            ok(!err)
+            equal(res.statusCode, 404)
             done()
           }
         )

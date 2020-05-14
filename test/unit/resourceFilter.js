@@ -1,10 +1,10 @@
 'use strict'
 
-const assert = require('assert')
+import { deepEqual, equal } from 'assert'
+import { Filter } from '../../src/resource_filter'
+import setup from '../integration/setup'
 
 describe('resourceFilter', () => {
-  const Filter = require('../../src/resource_filter')
-
   describe('getExcluded', () => {
     const filter = new Filter({})
 
@@ -14,8 +14,8 @@ describe('resourceFilter', () => {
           access: 'private'
         })
 
-        assert.equal(Array.isArray(excluded), true)
-        assert.equal(excluded.length, 0)
+        equal(Array.isArray(excluded), true)
+        equal(excluded.length, 0)
       })
     })
 
@@ -26,8 +26,8 @@ describe('resourceFilter', () => {
           filteredKeys: {}
         })
 
-        assert.equal(Array.isArray(excluded), true)
-        assert.equal(excluded.length, 0)
+        equal(Array.isArray(excluded), true)
+        equal(excluded.length, 0)
       })
 
       it('returns empty array', () => {
@@ -35,8 +35,8 @@ describe('resourceFilter', () => {
           access: 'protected'
         })
 
-        assert.equal(Array.isArray(excluded), true)
-        assert.equal(excluded.length, 0)
+        equal(Array.isArray(excluded), true)
+        equal(excluded.length, 0)
       })
 
       it('returns array of private fields', () => {
@@ -48,9 +48,9 @@ describe('resourceFilter', () => {
           }
         })
 
-        assert.equal(Array.isArray(excluded), true)
-        assert.equal(excluded.length, 1)
-        assert.deepEqual(excluded, ['foo'])
+        equal(Array.isArray(excluded), true)
+        equal(excluded.length, 1)
+        deepEqual(excluded, ['foo'])
       })
 
       it('returns array of private fields', () => {
@@ -65,9 +65,9 @@ describe('resourceFilter', () => {
           }
         })
 
-        assert.equal(Array.isArray(excluded), true)
-        assert.equal(excluded.length, 1)
-        assert.deepEqual(excluded, ['foo'])
+        equal(Array.isArray(excluded), true)
+        equal(excluded.length, 1)
+        deepEqual(excluded, ['foo'])
       })
     })
 
@@ -78,8 +78,8 @@ describe('resourceFilter', () => {
           filteredKeys: {}
         })
 
-        assert.equal(Array.isArray(excluded), true)
-        assert.equal(excluded.length, 0)
+        equal(Array.isArray(excluded), true)
+        equal(excluded.length, 0)
       })
 
       it('returns empty array', () => {
@@ -87,8 +87,8 @@ describe('resourceFilter', () => {
           access: 'public'
         })
 
-        assert.equal(Array.isArray(excluded), true)
-        assert.equal(excluded.length, 0)
+        equal(Array.isArray(excluded), true)
+        equal(excluded.length, 0)
       })
 
       it('returns array of private and protected fields', () => {
@@ -100,9 +100,9 @@ describe('resourceFilter', () => {
           }
         })
 
-        assert.equal(Array.isArray(excluded), true)
-        assert.equal(excluded.length, 2)
-        assert.deepEqual(excluded, ['foo', 'bar'])
+        equal(Array.isArray(excluded), true)
+        equal(excluded.length, 2)
+        deepEqual(excluded, ['foo', 'bar'])
       })
 
       it('returns array of private and protected fields', () => {
@@ -117,9 +117,9 @@ describe('resourceFilter', () => {
           }
         })
 
-        assert.equal(Array.isArray(excluded), true)
-        assert.equal(excluded.length, 2)
-        assert.deepEqual(excluded, ['foo', 'bar'])
+        equal(Array.isArray(excluded), true)
+        equal(excluded.length, 2)
+        deepEqual(excluded, ['foo', 'bar'])
       })
     })
   })
@@ -130,7 +130,7 @@ describe('resourceFilter', () => {
     it('does nothing', () => {
       let item = filter.filterItem()
 
-      assert.equal(item, undefined)
+      equal(item, undefined)
     })
 
     it('removes excluded keys from a document', () => {
@@ -144,7 +144,7 @@ describe('resourceFilter', () => {
 
       filter.filterItem(doc, ['foo'])
 
-      assert.deepEqual(doc, {})
+      deepEqual(doc, {})
     })
 
     it('removes excluded keys from a document', () => {
@@ -158,7 +158,7 @@ describe('resourceFilter', () => {
 
       filter.filterItem(doc, ['foo.bar.baz'])
 
-      assert.deepEqual(doc, {
+      deepEqual(doc, {
         foo: {
           bar: {}
         }
@@ -185,7 +185,7 @@ describe('resourceFilter', () => {
 
       filter.filterItem(docs, ['foo.bar.baz'])
 
-      assert.deepEqual(docs, [
+      deepEqual(docs, [
         {
           foo: {
             bar: {}
@@ -201,7 +201,7 @@ describe('resourceFilter', () => {
   })
 
   describe('filterPopulatedItem', () => {
-    const db = require('../integration/setup')()
+    const db = setup()
 
     db.initialize({
       connect: false
@@ -230,7 +230,7 @@ describe('resourceFilter', () => {
         populate: []
       })
 
-      assert.equal(item, null)
+      equal(item, null)
     })
 
     it('removes keys in populated document', () => {
@@ -252,7 +252,7 @@ describe('resourceFilter', () => {
         }
       })
 
-      assert.deepEqual(invoice, {
+      deepEqual(invoice, {
         customer: {},
         amount: '42'
       })
@@ -285,7 +285,7 @@ describe('resourceFilter', () => {
         }
       })
 
-      assert.deepEqual(invoices, [
+      deepEqual(invoices, [
         {
           customer: {},
           amount: '42'
@@ -313,7 +313,7 @@ describe('resourceFilter', () => {
         }
       })
 
-      assert.deepEqual(invoice, {
+      deepEqual(invoice, {
         amount: '42'
       })
     })
@@ -333,7 +333,7 @@ describe('resourceFilter', () => {
         }
       })
 
-      assert.deepEqual(invoice, {
+      deepEqual(invoice, {
         customer: {
           name: 'John'
         },
@@ -365,7 +365,7 @@ describe('resourceFilter', () => {
         }
       })
 
-      assert.deepEqual(invoice, {
+      deepEqual(invoice, {
         products: [{}, {}],
         amount: '42'
       })
@@ -394,7 +394,7 @@ describe('resourceFilter', () => {
         }
       })
 
-      assert.deepEqual(customer, {
+      deepEqual(customer, {
         name: 'John',
         purchases: [
           {

@@ -1,6 +1,6 @@
 'use strict'
 
-module.exports = function(options) {
+export default function(options) {
   return function(query, queryOptions) {
     const promise = new Promise((resolve, reject) => {
       if (!queryOptions) {

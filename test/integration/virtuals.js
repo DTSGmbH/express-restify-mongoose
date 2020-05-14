@@ -1,12 +1,12 @@
 'use strict'
 
-const assert = require('assert')
-const request = require('request')
+import { equal, ok } from 'assert'
+import { get } from 'request'
+import * as erm from '../../src/express-restify-mongoose'
+import dbSetup from './setup'
 
-module.exports = function(createFn, setup, dismantle) {
-  const erm = require('../../src/express-restify-mongoose')
-  const db = require('./setup')()
-
+export default function(createFn, setup, dismantle) {
+  const db = dbSetup()
   const testPort = 30023
   const testUrl = `http://localhost:${testPort}`
 
@@ -41,16 +41,16 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer 200 - unavailable', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
-            assert.equal(body[0].info, undefined)
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
+            equal(body[0].info, undefined)
             done()
           }
         )
@@ -87,16 +87,16 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer 200 - available', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
-            assert.equal(body.length, 1)
-            assert.equal(body[0].info, 'Bob is awesome')
+            ok(!err)
+            equal(res.statusCode, 200)
+            equal(body.length, 1)
+            equal(body[0].info, 'Bob is awesome')
             done()
           }
         )
@@ -133,14 +133,14 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('GET /Customer 200 - available', done => {
-        request.get(
+        get(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: true
           },
           (err, res, body) => {
-            assert.ok(!err)
-            assert.equal(res.statusCode, 200)
+            ok(!err)
+            equal(res.statusCode, 200)
             done()
           }
         )

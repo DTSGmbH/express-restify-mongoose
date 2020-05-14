@@ -1,12 +1,13 @@
 'use strict'
 
-const assert = require('assert')
-const mongoose = require('mongoose')
-const request = require('request')
+import { deepEqual, equal, notEqual, ok } from 'assert'
+import mongoose from 'mongoose'
+import request, { patch, put } from 'request'
+import * as erm from '../../src/express-restify-mongoose'
+import dbSetup from './setup'
 
-module.exports = function(createFn, setup, dismantle) {
-  const erm = require('../../src/express-restify-mongoose')
-  const db = require('./setup')()
+export default function(createFn, setup, dismantle) {
+  const db = dbSetup()
 
   const testPort = 30023
   const testUrl = `http://localhost:${testPort}`
@@ -106,9 +107,9 @@ module.exports = function(createFn, setup, dismantle) {
               json: {}
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'Bob')
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'Bob')
               done()
             }
           )
@@ -124,9 +125,9 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'Mike')
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'Mike')
               done()
             }
           )
@@ -142,10 +143,10 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 400)
+              ok(!err)
+              equal(res.statusCode, 400)
               delete body.reason
-              assert.deepEqual(body, {
+              deepEqual(body, {
                 kind: 'number',
                 message: 'Cast to number failed for value "not a number" at path "age"',
                 name: 'CastError',
@@ -168,26 +169,26 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 400)
-              assert.ok(Object.keys(body).length === 5 || Object.keys(body).length === 6 || Object.keys(body).length === 8)
-              assert.equal(body.name, 'MongoError')
+              ok(!err)
+              equal(res.statusCode, 400)
+              ok(Object.keys(body).length === 5 || Object.keys(body).length === 6 || Object.keys(body).length === 8)
+              equal(body.name, 'MongoError')
               // Remove extra whitespace and allow code 11001 for MongoDB < 3
-              assert.ok(
+              ok(
                 body.errmsg
                   .replace(/\s+/g, ' ')
                   .replace('exception: ', '')
                   .match(/E11000 duplicate key error (?:index|collection): database.customers(\.\$| index: )name_1 dup key: { (?:name|): "John" }/) !== null
               )
-              assert.ok(
+              ok(
                 body.message
                   .replace(/\s+/g, ' ')
                   .replace('exception: ', '')
                   .match(/E11000 duplicate key error (?:index|collection): database.customers(?:\.\$| index: )name_1 dup key: { (?:name|): "John" }/) !== null
               )
-              assert.ok(body.code === 11000 || body.code === 11001)
-              assert.ok(!body.codeName || body.codeName === 'DuplicateKey') // codeName is optional
-              assert.equal(body.ok, 0)
+              ok(body.code === 11000 || body.code === 11001)
+              ok(!body.codeName || body.codeName === 'DuplicateKey') // codeName is optional
+              equal(body.ok, 0)
               done()
             }
           )
@@ -200,9 +201,9 @@ module.exports = function(createFn, setup, dismantle) {
               url: `${testUrl}/api/v1/Customer/${customers[0]._id}`
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 400)
-              assert.deepEqual(JSON.parse(body), {
+              ok(!err)
+              equal(res.statusCode, 400)
+              deepEqual(JSON.parse(body), {
                 name: 'Error',
                 message: 'missing_content_type'
               })
@@ -219,9 +220,9 @@ module.exports = function(createFn, setup, dismantle) {
               formData: {}
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 400)
-              assert.deepEqual(JSON.parse(body), {
+              ok(!err)
+              equal(res.statusCode, 400)
+              deepEqual(JSON.parse(body), {
                 name: 'Error',
                 message: 'invalid_content_type'
               })
@@ -240,8 +241,8 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 404)
+              ok(!err)
+              equal(res.statusCode, 404)
               done()
             }
           )
@@ -257,8 +258,8 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 404)
+              ok(!err)
+              equal(res.statusCode, 404)
               done()
             }
           )
@@ -275,10 +276,10 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.customer, customers[1]._id)
-              assert.equal(body.products[0], products[1]._id)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.customer, customers[1]._id)
+              equal(body.products[0], products[1]._id)
               done()
             }
           )
@@ -295,10 +296,10 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.customer, customers[1]._id)
-              assert.equal(body.products[0], products[1]._id)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.customer, customers[1]._id)
+              equal(body.products[0], products[1]._id)
               done()
             }
           )
@@ -315,10 +316,10 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.customer, customers[1]._id)
-              assert.equal(body.products[0], products[1]._id)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.customer, customers[1]._id)
+              equal(body.products[0], products[1]._id)
               done()
             }
           )
@@ -335,10 +336,10 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.customer, customers[1]._id)
-              assert.equal(body.products[0], products[1]._id)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.customer, customers[1]._id)
+              equal(body.products[0], products[1]._id)
               done()
             }
           )
@@ -350,7 +351,7 @@ module.exports = function(createFn, setup, dismantle) {
               .populate('customer')
               .exec()
               .then(invoice => {
-                assert.notEqual(invoice.amount, 200)
+                notEqual(invoice.amount, 200)
                 invoice.amount = 200
 
                 request(
@@ -360,10 +361,10 @@ module.exports = function(createFn, setup, dismantle) {
                     json: invoice
                   },
                   (err, res, body) => {
-                    assert.ok(!err)
-                    assert.equal(res.statusCode, 200)
-                    assert.equal(body.amount, 200)
-                    assert.equal(body.customer, invoice.customer._id)
+                    ok(!err)
+                    equal(res.statusCode, 200)
+                    equal(body.amount, 200)
+                    equal(body.customer, invoice.customer._id)
                     done()
                   }
                 )
@@ -376,7 +377,7 @@ module.exports = function(createFn, setup, dismantle) {
               .populate('products')
               .exec()
               .then(invoice => {
-                assert.notEqual(invoice.amount, 200)
+                notEqual(invoice.amount, 200)
                 invoice.amount = 200
 
                 request(
@@ -386,10 +387,10 @@ module.exports = function(createFn, setup, dismantle) {
                     json: invoice
                   },
                   (err, res, body) => {
-                    assert.ok(!err)
-                    assert.equal(res.statusCode, 200)
-                    assert.equal(body.amount, 200)
-                    assert.deepEqual(body.products, [invoice.products[0]._id.toHexString(), invoice.products[1]._id.toHexString()])
+                    ok(!err)
+                    equal(res.statusCode, 200)
+                    equal(body.amount, 200)
+                    deepEqual(body.products, [invoice.products[0]._id.toHexString(), invoice.products[1]._id.toHexString()])
                     done()
                   }
                 )
@@ -412,16 +413,16 @@ module.exports = function(createFn, setup, dismantle) {
                     json: invoice
                   },
                   (err, res, body) => {
-                    assert.ok(!err)
-                    assert.equal(res.statusCode, 200)
-                    assert.ok(body.customer)
-                    assert.equal(body.customer._id, invoice.customer._id)
-                    assert.equal(body.customer.name, invoice.customer.name)
-                    assert.ok(body.products)
-                    assert.equal(body.products[0]._id, invoice.products[0]._id.toHexString())
-                    assert.equal(body.products[0].name, invoice.products[0].name)
-                    assert.equal(body.products[1]._id, invoice.products[1]._id.toHexString())
-                    assert.equal(body.products[1].name, invoice.products[1].name)
+                    ok(!err)
+                    equal(res.statusCode, 200)
+                    ok(body.customer)
+                    equal(body.customer._id, invoice.customer._id)
+                    equal(body.customer.name, invoice.customer.name)
+                    ok(body.products)
+                    equal(body.products[0]._id, invoice.products[0]._id.toHexString())
+                    equal(body.products[0].name, invoice.products[0].name)
+                    equal(body.products[1]._id, invoice.products[1]._id.toHexString())
+                    equal(body.products[1].name, invoice.products[1].name)
                     done()
                   }
                 )
@@ -445,11 +446,11 @@ module.exports = function(createFn, setup, dismantle) {
                     json: customer
                   },
                   (err, res, body) => {
-                    assert.ok(!err)
-                    assert.equal(res.statusCode, 200)
-                    assert.ok(body.returns)
-                    assert.equal(body.returns.length, 1)
-                    assert.equal(body.returns[0]._id, products[1]._id)
+                    ok(!err)
+                    equal(res.statusCode, 200)
+                    ok(body.returns)
+                    equal(body.returns.length, 1)
+                    equal(body.returns[0]._id, products[1]._id)
                     done()
                   }
                 )
@@ -460,17 +461,17 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('PATCH /Customer 404 (Express), 405 (Restify)', done => {
-        request.patch(
+        patch(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: {}
           },
           (err, res, body) => {
-            assert.ok(!err)
+            ok(!err)
             if (app.isRestify) {
-              assert.equal(res.statusCode, 405)
+              equal(res.statusCode, 405)
             } else {
-              assert.equal(res.statusCode, 404)
+              equal(res.statusCode, 404)
             }
             done()
           }
@@ -478,17 +479,17 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('PUT /Customer 404 (Express), 405 (Restify)', done => {
-        request.put(
+        put(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: {}
           },
           (err, res, body) => {
-            assert.ok(!err)
+            ok(!err)
             if (app.isRestify) {
-              assert.equal(res.statusCode, 405)
+              equal(res.statusCode, 405)
             } else {
-              assert.equal(res.statusCode, 404)
+              equal(res.statusCode, 404)
             }
             done()
           }
@@ -587,9 +588,9 @@ module.exports = function(createFn, setup, dismantle) {
               json: {}
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'Bob')
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'Bob')
               done()
             }
           )
@@ -605,9 +606,9 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.name, 'Mike')
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.name, 'Mike')
               done()
             }
           )
@@ -623,9 +624,9 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 400)
-              assert.deepEqual(body, {
+              ok(!err)
+              equal(res.statusCode, 400)
+              deepEqual(body, {
                 name: 'ValidationError',
                 _message: 'Customer validation failed',
                 message: 'Customer validation failed: age: Cast to Number failed for value "not a number" at path "age"',
@@ -655,26 +656,26 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 400)
+              ok(!err)
+              equal(res.statusCode, 400)
               // Remove extra whitespace, allow 6, 8, or 9 keys and code 11001 for MongoDB < 3
-              assert.ok(Object.keys(body).length === 6 || Object.keys(body).length === 8 || Object.keys(body).length === 9)
-              assert.equal(body.name, 'MongoError')
-              assert.equal(body.driver, true)
-              assert.ok(
+              ok(Object.keys(body).length === 6 || Object.keys(body).length === 8 || Object.keys(body).length === 9)
+              equal(body.name, 'MongoError')
+              equal(body.driver, true)
+              ok(
                 body.errmsg
                   .replace(/\s+/g, ' ')
                   .replace('exception: ', '')
                   .match(/E11000 duplicate key error (?:index|collection): database.customers(?:\.\$| index: )name_1 dup key: { (?:name|): "John" }/) !== null
               )
-              assert.ok(
+              ok(
                 body.message
                   .replace(/\s+/g, ' ')
                   .replace('exception: ', '')
                   .match(/E11000 duplicate key error (?:index|collection): database.customers(?:\.\$| index: )name_1 dup key: { (?:name|): "John" }/) !== null
               )
-              assert.ok(body.code === 11000 || body.code === 11001)
-              assert.ok(!body.writeErrors || body.writeErrors.length === 1)
+              ok(body.code === 11000 || body.code === 11001)
+              ok(!body.writeErrors || body.writeErrors.length === 1)
               done()
             }
           )
@@ -687,9 +688,9 @@ module.exports = function(createFn, setup, dismantle) {
               url: `${testUrl}/api/v1/Customer/${customers[0]._id}`
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 400)
-              assert.deepEqual(JSON.parse(body), {
+              ok(!err)
+              equal(res.statusCode, 400)
+              deepEqual(JSON.parse(body), {
                 name: 'Error',
                 message: 'missing_content_type'
               })
@@ -708,9 +709,9 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 400)
-              assert.deepEqual(JSON.parse(body), {
+              ok(!err)
+              equal(res.statusCode, 400)
+              deepEqual(JSON.parse(body), {
                 name: 'Error',
                 message: 'invalid_content_type'
               })
@@ -729,8 +730,8 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 404)
+              ok(!err)
+              equal(res.statusCode, 404)
               done()
             }
           )
@@ -746,8 +747,8 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 404)
+              ok(!err)
+              equal(res.statusCode, 404)
               done()
             }
           )
@@ -764,10 +765,10 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.customer, customers[1]._id)
-              assert.equal(body.products[0], products[1]._id)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.customer, customers[1]._id)
+              equal(body.products[0], products[1]._id)
               done()
             }
           )
@@ -784,10 +785,10 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.customer, customers[1]._id)
-              assert.equal(body.products[0], products[1]._id)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.customer, customers[1]._id)
+              equal(body.products[0], products[1]._id)
               done()
             }
           )
@@ -804,10 +805,10 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.customer, customers[1]._id)
-              assert.equal(body.products[0], products[1]._id)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.customer, customers[1]._id)
+              equal(body.products[0], products[1]._id)
               done()
             }
           )
@@ -824,10 +825,10 @@ module.exports = function(createFn, setup, dismantle) {
               }
             },
             (err, res, body) => {
-              assert.ok(!err)
-              assert.equal(res.statusCode, 200)
-              assert.equal(body.customer, customers[1]._id)
-              assert.equal(body.products[0], products[1]._id)
+              ok(!err)
+              equal(res.statusCode, 200)
+              equal(body.customer, customers[1]._id)
+              equal(body.products[0], products[1]._id)
               done()
             }
           )
@@ -839,7 +840,7 @@ module.exports = function(createFn, setup, dismantle) {
               .populate('customer')
               .exec()
               .then(invoice => {
-                assert.notEqual(invoice.amount, 200)
+                notEqual(invoice.amount, 200)
                 invoice.amount = 200
 
                 request(
@@ -849,10 +850,10 @@ module.exports = function(createFn, setup, dismantle) {
                     json: invoice
                   },
                   (err, res, body) => {
-                    assert.ok(!err)
-                    assert.equal(res.statusCode, 200)
-                    assert.equal(body.amount, 200)
-                    assert.equal(body.customer, invoice.customer._id)
+                    ok(!err)
+                    equal(res.statusCode, 200)
+                    equal(body.amount, 200)
+                    equal(body.customer, invoice.customer._id)
                     done()
                   }
                 )
@@ -865,7 +866,7 @@ module.exports = function(createFn, setup, dismantle) {
               .populate('products')
               .exec()
               .then(invoice => {
-                assert.notEqual(invoice.amount, 200)
+                notEqual(invoice.amount, 200)
                 invoice.amount = 200
 
                 request(
@@ -875,10 +876,10 @@ module.exports = function(createFn, setup, dismantle) {
                     json: invoice
                   },
                   (err, res, body) => {
-                    assert.ok(!err)
-                    assert.equal(res.statusCode, 200)
-                    assert.equal(body.amount, 200)
-                    assert.deepEqual(body.products, [invoice.products[0]._id.toHexString(), invoice.products[1]._id.toHexString()])
+                    ok(!err)
+                    equal(res.statusCode, 200)
+                    equal(body.amount, 200)
+                    deepEqual(body.products, [invoice.products[0]._id.toHexString(), invoice.products[1]._id.toHexString()])
                     done()
                   }
                 )
@@ -901,16 +902,16 @@ module.exports = function(createFn, setup, dismantle) {
                     json: invoice
                   },
                   (err, res, body) => {
-                    assert.ok(!err)
-                    assert.equal(res.statusCode, 200)
-                    assert.ok(body.customer)
-                    assert.equal(body.customer._id, invoice.customer._id)
-                    assert.equal(body.customer.name, invoice.customer.name)
-                    assert.ok(body.products)
-                    assert.equal(body.products[0]._id, invoice.products[0]._id.toHexString())
-                    assert.equal(body.products[0].name, invoice.products[0].name)
-                    assert.equal(body.products[1]._id, invoice.products[1]._id.toHexString())
-                    assert.equal(body.products[1].name, invoice.products[1].name)
+                    ok(!err)
+                    equal(res.statusCode, 200)
+                    ok(body.customer)
+                    equal(body.customer._id, invoice.customer._id)
+                    equal(body.customer.name, invoice.customer.name)
+                    ok(body.products)
+                    equal(body.products[0]._id, invoice.products[0]._id.toHexString())
+                    equal(body.products[0].name, invoice.products[0].name)
+                    equal(body.products[1]._id, invoice.products[1]._id.toHexString())
+                    equal(body.products[1].name, invoice.products[1].name)
                     done()
                   }
                 )
@@ -934,11 +935,11 @@ module.exports = function(createFn, setup, dismantle) {
                     json: customer
                   },
                   (err, res, body) => {
-                    assert.ok(!err)
-                    assert.equal(res.statusCode, 200)
-                    assert.ok(body.returns)
-                    assert.equal(body.returns.length, 1)
-                    assert.equal(body.returns[0]._id, products[1]._id)
+                    ok(!err)
+                    equal(res.statusCode, 200)
+                    ok(body.returns)
+                    equal(body.returns.length, 1)
+                    equal(body.returns[0]._id, products[1]._id)
                     done()
                   }
                 )
@@ -949,17 +950,17 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('PATCH /Customer 404 (Express), 405 (Restify)', done => {
-        request.patch(
+        patch(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: {}
           },
           (err, res, body) => {
-            assert.ok(!err)
+            ok(!err)
             if (app.isRestify) {
-              assert.equal(res.statusCode, 405)
+              equal(res.statusCode, 405)
             } else {
-              assert.equal(res.statusCode, 404)
+              equal(res.statusCode, 404)
             }
             done()
           }
@@ -967,17 +968,17 @@ module.exports = function(createFn, setup, dismantle) {
       })
 
       it('PUT /Customer 404 (Express), 405 (Restify)', done => {
-        request.put(
+        put(
           {
             url: `${testUrl}/api/v1/Customer`,
             json: {}
           },
           (err, res, body) => {
-            assert.ok(!err)
+            ok(!err)
             if (app.isRestify) {
-              assert.equal(res.statusCode, 405)
+              equal(res.statusCode, 405)
             } else {
-              assert.equal(res.statusCode, 404)
+              equal(res.statusCode, 404)
             }
             done()
           }

@@ -1,8 +1,8 @@
 'use strict'
 
-const { serializeError } = require('serialize-error')
+import { serializeError } from 'serialize-error'
 
-module.exports = function(isExpress) {
+export default function(isExpress) {
   return function(err, req, res, next) {
     const serializedErr = serializeError(err)
 

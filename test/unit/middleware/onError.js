@@ -1,10 +1,9 @@
 'use strict'
 
-const sinon = require('sinon')
+import { assert, spy } from 'sinon'
+import onError from '../../../src/middleware/onError'
 
 describe('onError', () => {
-  const onError = require('../../../src/middleware/onError')
-
   const req = {
     erm: {
       statusCode: 500
@@ -19,10 +18,10 @@ describe('onError', () => {
     send: () => {}
   }
 
-  let setHeader = sinon.spy(res, 'setHeader')
-  let status = sinon.spy(res, 'status')
-  let send = sinon.spy(res, 'send')
-  let next = sinon.spy()
+  let setHeader = spy(res, 'setHeader')
+  let status = spy(res, 'status')
+  let send = spy(res, 'send')
+  let next = spy()
 
   afterEach(() => {
     setHeader.resetHistory()
@@ -34,29 +33,29 @@ describe('onError', () => {
   it('with express', () => {
     onError(true)(new Error('An error occurred'), req, res, next)
 
-    sinon.assert.calledOnce(setHeader)
-    sinon.assert.calledWithExactly(setHeader, 'Content-Type', 'application/json')
-    sinon.assert.calledOnce(status)
-    sinon.assert.calledWithExactly(status, 500)
-    sinon.assert.calledOnce(send)
-    sinon.assert.calledWithExactly(send, {
+    assert.calledOnce(setHeader)
+    assert.calledWithExactly(setHeader, 'Content-Type', 'application/json')
+    assert.calledOnce(status)
+    assert.calledWithExactly(status, 500)
+    assert.calledOnce(send)
+    assert.calledWithExactly(send, {
       message: 'An error occurred',
       name: 'Error'
     })
-    sinon.assert.notCalled(next)
+    assert.notCalled(next)
   })
 
   it('with restify', () => {
     onError(false)(new Error('An error occurred'), req, res, next)
 
-    sinon.assert.calledOnce(setHeader)
-    sinon.assert.calledWithExactly(setHeader, 'Content-Type', 'application/json')
-    sinon.assert.notCalled(status)
-    sinon.assert.calledOnce(send)
-    sinon.assert.calledWithExactly(send, 500, {
+    assert.calledOnce(setHeader)
+    assert.calledWithExactly(setHeader, 'Content-Type', 'application/json')
+    assert.notCalled(status)
+    assert.calledOnce(send)
+    assert.calledWithExactly(send, 500, {
       message: 'An error occurred',
       name: 'Error'
     })
-    sinon.assert.notCalled(next)
+    assert.notCalled(next)
   })
 })
